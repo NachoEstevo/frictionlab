@@ -1,8 +1,17 @@
 .DS_Store
 .superpowers/
+.worktrees/
+worktrees/
 node_modules/
 .next/
 .vercel/
+.turbo/
+coverage/
+dist/
+*.tsbuildinfo
+*.log
+*.zip
+/FrictionLab.png
 .env
 .env.*
 !.env.example

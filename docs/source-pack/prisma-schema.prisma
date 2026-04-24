@@ -1,0 +1,256 @@
+model AuditRun {
+  id              String   @id @default(cuid())
+  url             String
+  finalUrl        String?
+  targetAudience  String
+  conversionGoal  String
+  businessType    String
+  language        String   @default("en")
+  market          String?
+  brandTone       String?
+  personaCount    Int      @default(4)
+  status          String   @default("CREATED")
+  mode            String   @default("LIVE")
+  conversionScore Int?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  pageSnapshot    PageSnapshot?
+  screenshots     Screenshot[]
+  personas        Persona[]
+  sessions        PersonaSession[]
+  findings        Finding[]
+  recommendations Recommendation[]
+  copyVariants    CopyVariant[]
+  report          Report?
+  presenterReport PresenterReport?
+  agentRuns       AgentRun[]
+  toolCalls       ToolCall[]
+  shareableReport ShareableReport?
+}
+
+model PageSnapshot {
+  id          String   @id @default(cuid())
+  auditRunId  String   @unique
+  auditRun    AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  title       String?
+  description String?
+  rawHtmlHash String?
+  visibleText String?
+  sections    Json
+  ctas        Json
+  links       Json
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}
+
+model Screenshot {
+  id           String   @id @default(cuid())
+  auditRunId   String
+  auditRun     AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  viewport     String
+  status       String
+  url          String?
+  blobPath     String?
+  width        Int?
+  height       Int?
+  fallbackType String?
+  error        String?
+  createdAt    DateTime @default(now())
+}
+
+model Persona {
+  id                 String   @id @default(cuid())
+  auditRunId          String
+  auditRun            AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  name                String
+  segment             String
+  context             String
+  goal                String
+  objections          Json
+  trustSensitivity    String
+  priceSensitivity    String
+  technicalLevel      String
+  patience            String
+  device              String
+  likelyQuestions     Json
+  conversionTriggers  Json
+  abandonmentTriggers Json
+  decisionStyle       String?
+  createdAt           DateTime @default(now())
+
+  sessions            PersonaSession[]
+}
+
+model PersonaSession {
+  id                   String   @id @default(cuid())
+  auditRunId            String
+  personaId             String
+  auditRun              AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  persona               Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
+  status                String   @default("PENDING")
+  heroClarity           Int?
+  offerUnderstanding    Int?
+  relevance             Int?
+  trust                 Int?
+  pricingClarity        Int?
+  processClarity        Int?
+  ctaReadiness          Int?
+  conversionLikelihood  Int?
+  likelyBouncePoint     String?
+  finalVerdict          String?
+  objections            Json?
+  missingInformation    Json?
+  frictionPoints        Json?
+  quotes                Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  events                SessionEvent[]
+}
+
+model SessionEvent {
+  id               String   @id @default(cuid())
+  personaSessionId String
+  personaSession   PersonaSession @relation(fields: [personaSessionId], references: [id], onDelete: Cascade)
+  order            Int
+  stage            String
+  personaThought   String
+  observedEvidence Json
+  friction         String?
+  emotion          String
+  decision         String
+  createdAt        DateTime @default(now())
+}
+
+model Finding {
+  id               String   @id @default(cuid())
+  auditRunId        String
+  auditRun          AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  category          String
+  problem           String
+  evidence          Json
+  affectedPersonas  Json
+  severity          String
+  impact            String
+  effort            String
+  confidence        Float
+  suggestedFix      String
+  suggestedCopy     String?
+  createdAt         DateTime @default(now())
+}
+
+model Recommendation {
+  id              String   @id @default(cuid())
+  auditRunId       String
+  auditRun         AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  findingIds       Json
+  title            String
+  whyItMatters     String
+  implementation   String
+  impact           String
+  effort           String
+  priority         Int
+  checklist        Json
+  createdAt        DateTime @default(now())
+}
+
+model CopyVariant {
+  id          String   @id @default(cuid())
+  auditRunId  String
+  auditRun    AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  type        String
+  label       String
+  content     Json
+  rationale   String?
+  createdAt   DateTime @default(now())
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  auditRunId       String   @unique
+  auditRun         AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  executiveSummary String
+  conversionScore  Int
+  frictionMap      Json
+  personaOutcomes  Json
+  topBlockers      Json
+  trustGaps        Json
+  copyIssues       Json
+  uiIssues         Json
+  mobileIssues     Json
+  recommendations  Json
+  checklist        Json
+  fullJson         Json
+  createdAt        DateTime @default(now())
+}
+
+model PresenterReport {
+  id              String   @id @default(cuid())
+  auditRunId       String   @unique
+  auditRun         AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  title           String
+  subtitle        String?
+  durationSeconds Int      @default(60)
+  voiceoverScript String
+  executiveScript String?
+  captions        Json
+  storyboardJson  Json
+  renderStatus    String   @default("NOT_REQUESTED")
+  videoUrl        String?
+  error           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  scenes          PresenterScene[]
+}
+
+model PresenterScene {
+  id                String   @id @default(cuid())
+  presenterReportId String
+  presenterReport   PresenterReport @relation(fields: [presenterReportId], references: [id], onDelete: Cascade)
+  order             Int
+  title             String
+  narration         String
+  visualType        String
+  visualPayload     Json
+  durationSeconds   Int
+  caption           String
+  createdAt         DateTime @default(now())
+}
+
+model AgentRun {
+  id          String   @id @default(cuid())
+  auditRunId  String
+  auditRun    AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  agentName   String
+  status      String
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+}
+
+model ToolCall {
+  id          String   @id @default(cuid())
+  auditRunId  String
+  auditRun    AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  toolName    String
+  status      String
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+}
+
+model ShareableReport {
+  id          String   @id @default(cuid())
+  auditRunId  String   @unique
+  auditRun    AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  shareId     String   @unique
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}

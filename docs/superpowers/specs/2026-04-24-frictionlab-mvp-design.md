@@ -23,12 +23,12 @@ This keeps the Vercel deployment path simple, avoids monorepo overhead, and make
 
 FrictionLab is an AI conversion research agent. A user enters a public landing page URL, target audience, and conversion goal. The product runs a synthetic user swarm through the page, extracts evidence, simulates persona sessions, aggregates friction findings, generates prioritized recommendations and copy variants, then publishes a shareable report plus a Presenter Report storyboard.
 
-The MVP is demo-first and must remain stable with no external services available.
+The MVP is real-first and must run a live vertical slice against public URLs. Demo and mock behavior are fallbacks for blocked pages, missing credentials, and presentation safety, not the primary product path.
 
 P0 user flow:
 
 1. Enter URL, target audience, conversion goal, business type, language or market, tone, and persona count.
-2. Load a demo audit or start a best-effort live audit.
+2. Start a real audit against a public URL, or load a demo audit as fallback.
 3. Watch a workflow timeline with extraction, screenshot, persona, session, findings, report, and presenter steps.
 4. Review four persona cards and open persona session timelines.
 5. Inspect evidence-backed findings and conversion score.
@@ -45,11 +45,11 @@ Non-goals:
 
 ## Architecture
 
-Use Next.js App Router, Tailwind, shadcn/ui, TypeScript, Prisma, Postgres-compatible schema, Vercel AI SDK or AI Gateway for structured outputs, Vercel Blob for optional screenshot/video assets, and Vercel Workflow when stable.
+Use Next.js App Router, Tailwind, shadcn/ui, TypeScript, Prisma, Postgres-compatible schema, Vercel AI SDK with direct OpenAI/Anthropic keys for structured outputs, Vercel Blob for optional screenshot/video assets, and Vercel Workflow when stable.
 
 Vercel Workflow is the preferred hackathon-track architecture, but the first implementation should include a sequential runner with the same persisted step/status contract. This protects the demo while keeping the system ready to switch to Workflow.
 
-Current Vercel docs describe Workflow as a beta managed platform built on WDK, so it should be integrated after the mock UI, schemas, API contracts, and seeded demo run are reliable.
+Current Vercel docs describe Workflow as a beta managed platform built on WDK, so it should be integrated after the real extraction, AI audit, API contracts, persistence, and report flow are reliable.
 
 Primary runtime shape:
 
@@ -151,12 +151,12 @@ Important guardrail: every finding must include evidence references or be catego
 
 ## AI And Evidence
 
-AI calls should use structured outputs validated by Zod. The first stable implementation should support:
+AI calls should use structured outputs validated by Zod. The first stable implementation should support direct OpenAI and Anthropic provider keys through the Vercel AI SDK:
 
 - Fast model: personas and sessions.
 - Strong model: aggregation, recommendations, report, and presenter.
 - Retry once on schema validation failure.
-- Fall back to deterministic templates or seeded data when AI is unavailable.
+- Fall back to deterministic templates or seeded data only when AI is unavailable or schema validation fails after retry.
 - Persist AgentRun and ToolCall status for the timeline/event feed.
 
 AI prompts must separate observed evidence from inferred risk and suggested fixes. If information is absent from extracted page evidence, the output marks it as missing instead of fabricating it.
@@ -172,8 +172,9 @@ Page extraction:
 
 Screenshots:
 
-- Browserless Screenshot API if `BROWSERLESS_TOKEN` exists.
-- Vercel Blob upload if `BLOB_READ_WRITE_TOKEN` exists.
+- P0 uses DOM evidence and visible text extraction.
+- Browserless Screenshot API if `BROWSERLESS_TOKEN` exists is P1.
+- Vercel Blob upload if `BLOB_READ_WRITE_TOKEN` exists is P1.
 - Record screenshot failure as data and continue with DOM evidence.
 - Do not make local Playwright mandatory in production.
 
@@ -194,7 +195,7 @@ Screens:
 - Presenter Report.
 - Shareable report.
 
-The UI should be mock-first and responsive. The demo run for LaunchPilot must include realistic data for all major screens before live integrations are attempted.
+The UI should be real-data-first and responsive. The demo run for LaunchPilot must include realistic data for all major screens, but it is a fallback and demo safety path.
 
 ## Error Handling
 
@@ -214,6 +215,7 @@ Initial verification targets:
 
 - Build passes.
 - `MOCK_MODE=true` works without external APIs.
+- `MOCK_MODE=false` runs a real URL through extraction and AI when credentials are present.
 - Demo audit loads.
 - API routes validate input and return stable contracts.
 - Mock data validates against Zod schemas.
@@ -225,14 +227,14 @@ Once live integrations exist, test at least one public page and one blocked/fail
 ## Implementation Order
 
 1. Scaffold root Next.js app and preserve source pack under docs.
-2. Build mock UI and navigation for the full P0 demo flow.
-3. Add Zod schemas and validate LaunchPilot mock data.
-4. Add Prisma schema.
-5. Add API routes with mock mode and demo seed.
-6. Add sequential workflow runner with persisted statuses.
-7. Add AI functions with structured outputs and fallbacks.
-8. Add extraction and screenshot fallbacks.
-9. Add Presenter Report generation and render-disabled UI.
+2. Add Zod schemas and Prisma schema.
+3. Add extraction for real public URLs.
+4. Add AI functions with structured outputs and fallbacks.
+5. Add sequential workflow runner with persisted statuses.
+6. Add API routes with real mode, mock mode, and demo seed.
+7. Build UI and navigation for the real P0 flow plus fallback states.
+8. Add Presenter Report generation and render-disabled UI.
+9. Validate LaunchPilot seed and real URL flows.
 10. Harden demo and deploy to Vercel.
 
 ## References Checked
