@@ -76,4 +76,23 @@ describe("runtime readiness", () => {
 
     expect(readiness.checks.appUrl.status).toBe("missing");
   });
+
+  it("reports ready when configured models use AI Gateway credentials", () => {
+    const readiness = getRuntimeReadiness({
+      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      openaiApiKey: undefined,
+      anthropicApiKey: undefined,
+      aiGatewayApiKey: "gateway-test",
+      mockMode: false,
+      demoFallback: true,
+      enableRemotionRender: false,
+      appUrl: "http://localhost:3000",
+      fastModel: "openai/gpt-5.4-mini",
+      strongModel: "gateway:anthropic/claude-sonnet-4.6"
+    });
+
+    expect(readiness.status).toBe("ready");
+    expect(readiness.canRunRealAi).toBe(true);
+    expect(readiness.checks.aiProvider.status).toBe("ready");
+  });
 });

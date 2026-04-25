@@ -92,7 +92,7 @@ Required for persisted audits:
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 ```
 
-Required for real AI synthesis:
+Required for real AI synthesis with direct providers:
 
 ```bash
 OPENAI_API_KEY=""
@@ -100,6 +100,16 @@ ANTHROPIC_API_KEY=""
 FRICTIONLAB_FAST_MODEL="openai:gpt-4.1-mini"
 FRICTIONLAB_STRONG_MODEL="anthropic:claude-sonnet-4-5"
 ```
+
+Optional Vercel AI Gateway routing:
+
+```bash
+AI_GATEWAY_API_KEY=""
+FRICTIONLAB_FAST_MODEL="openai/gpt-5.4-mini"
+FRICTIONLAB_STRONG_MODEL="anthropic/claude-sonnet-4.6"
+```
+
+Gateway model ids use `provider/model`. The explicit `gateway:provider/model` prefix is also supported. On Vercel, OIDC-based Gateway auth can satisfy the same readiness check without committing a token.
 
 Runtime behavior:
 
@@ -112,7 +122,6 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 Optional integrations:
 
 ```bash
-AI_GATEWAY_API_KEY=""
 BROWSERLESS_TOKEN=""
 BLOB_READ_WRITE_TOKEN=""
 ENABLE_REMOTION_RENDER="false"
@@ -129,7 +138,7 @@ curl http://localhost:3000/api/health/readiness
 Readiness states:
 
 - `ready`: database is configured and the selected mode can run.
-- `degraded`: database exists, but real AI keys are missing, so audits fall back to template artifacts.
+- `degraded`: database exists, but the configured model credentials are missing, so audits fall back to template artifacts.
 - `blocked`: required runtime dependency is missing, usually `DATABASE_URL`.
 
 ## API Surface
@@ -209,5 +218,4 @@ When `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are both set, each audit at
 P1 candidates:
 
 - Vercel Workflow / WDK durable execution
-- AI Gateway routing
 - Optional video rendering from Presenter Report scenes

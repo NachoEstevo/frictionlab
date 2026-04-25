@@ -1,3 +1,4 @@
+import { hasModelCredential } from "@/lib/ai/model";
 import { getEnv, type AppEnv } from "@/lib/env";
 
 type CheckStatus = "ready" | "missing" | "disabled" | "optional";
@@ -35,14 +36,14 @@ export function getRuntimeReadiness(
   optionalEnv: { browserlessToken?: string; blobReadWriteToken?: string; appUrlConfigured?: boolean } = {}
 ): RuntimeReadiness {
   const hasDatabase = Boolean(env.databaseUrl);
-  const hasAiProvider = Boolean(env.openaiApiKey || env.anthropicApiKey);
-  const canRunRealAi = !env.mockMode && hasAiProvider;
+  const hasConfiguredAiModels = hasModelCredential(env.fastModel, env) && hasModelCredential(env.strongModel, env);
+  const canRunRealAi = !env.mockMode && hasConfiguredAiModels;
 
   const database = hasDatabase
     ? ready("Postgres is configured for persisted audits.")
     : missing("DATABASE_URL is required before audits can be created.");
 
-  const aiProvider = getAiProviderCheck(env.mockMode, hasAiProvider);
+  const aiProvider = getAiProviderCheck(env.mockMode, hasConfiguredAiModels);
   const checks = {
     database,
     aiProvider,
@@ -62,22 +63,22 @@ export function getRuntimeReadiness(
   };
 
   return {
-    status: getOverallStatus({ hasDatabase, hasAiProvider, mockMode: env.mockMode }),
+    status: getOverallStatus({ hasDatabase, hasConfiguredAiModels, mockMode: env.mockMode }),
     canStartAudits: hasDatabase,
     canRunRealAi,
     checks
   };
 }
 
-function getAiProviderCheck(mockMode: boolean, hasAiProvider: boolean): RuntimeCheck {
+function getAiProviderCheck(mockMode: boolean, hasConfiguredAiModels: boolean): RuntimeCheck {
   if (mockMode) return disabled("AI provider keys are not required while MOCK_MODE is enabled.");
-  if (hasAiProvider) return ready("At least one direct AI provider key is configured.");
-  return missing("No OpenAI or Anthropic key is configured; audits will fall back to template artifacts.");
+  if (hasConfiguredAiModels) return ready("Configured fast and strong model credentials are available.");
+  return missing("Configured AI model credentials are missing; audits will fall back to template artifacts.");
 }
 
-function getOverallStatus(input: { hasDatabase: boolean; hasAiProvider: boolean; mockMode: boolean }): ReadinessStatus {
+function getOverallStatus(input: { hasDatabase: boolean; hasConfiguredAiModels: boolean; mockMode: boolean }): ReadinessStatus {
   if (!input.hasDatabase) return "blocked";
-  if (!input.mockMode && !input.hasAiProvider) return "degraded";
+  if (!input.mockMode && !input.hasConfiguredAiModels) return "degraded";
   return "ready";
 }
 

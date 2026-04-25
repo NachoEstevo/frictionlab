@@ -2,6 +2,8 @@ export type AppEnv = {
   databaseUrl?: string;
   openaiApiKey?: string;
   anthropicApiKey?: string;
+  aiGatewayApiKey?: string;
+  vercelOidcToken?: string;
   fastModel: string;
   strongModel: string;
   mockMode: boolean;
@@ -17,6 +19,8 @@ export function getEnv(): AppEnv {
     databaseUrl: process.env.DATABASE_URL,
     openaiApiKey: process.env.OPENAI_API_KEY,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY,
+    vercelOidcToken: process.env.VERCEL_OIDC_TOKEN,
     fastModel: process.env.FRICTIONLAB_FAST_MODEL || "openai:gpt-4.1-mini",
     strongModel: process.env.FRICTIONLAB_STRONG_MODEL || "anthropic:claude-sonnet-4-5",
     mockMode: parseBoolean(process.env.MOCK_MODE, false),

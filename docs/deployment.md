@@ -20,17 +20,25 @@ Required:
 
 - `DATABASE_URL`: Postgres connection string. Attach a Vercel Marketplace Postgres provider or another managed Postgres database, then run the Prisma migration.
 
-Required for real AI:
+Required for real AI with direct providers:
 
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 
-At least one AI key is enough for the app to avoid AI fallback. Keep both when possible because fast and strong model routing can use different providers.
+The configured fast and strong models each need a matching credential. With the default model routing, keep both keys because fast and strong model routing use different providers.
 
-Model routing:
+Direct provider model routing:
 
 - `FRICTIONLAB_FAST_MODEL=openai:gpt-4.1-mini`
 - `FRICTIONLAB_STRONG_MODEL=anthropic:claude-sonnet-4-5`
+
+Vercel AI Gateway model routing:
+
+- `AI_GATEWAY_API_KEY`
+- `FRICTIONLAB_FAST_MODEL=openai/gpt-5.4-mini`
+- `FRICTIONLAB_STRONG_MODEL=anthropic/claude-sonnet-4.6`
+
+Gateway model ids use `provider/model`; `gateway:provider/model` is also accepted. On Vercel, OIDC-based Gateway auth can satisfy this without a static API key when the project is configured for AI Gateway.
 
 Runtime behavior:
 
@@ -40,7 +48,6 @@ Runtime behavior:
 
 Optional integrations:
 
-- `AI_GATEWAY_API_KEY`
 - `BROWSERLESS_TOKEN`
 - `BLOB_READ_WRITE_TOKEN`
 - `ENABLE_REMOTION_RENDER=false`
