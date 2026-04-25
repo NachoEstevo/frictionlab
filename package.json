@@ -16,10 +16,12 @@
   "dependencies": {
     "@ai-sdk/anthropic": "latest",
     "@ai-sdk/openai": "latest",
+    "@gsap/react": "^2.1.2",
     "@prisma/client": "6.19.3",
     "ai": "latest",
     "cheerio": "latest",
     "clsx": "latest",
+    "gsap": "^3.15.0",
     "lucide-react": "latest",
     "nanoid": "latest",
     "next": "latest",
