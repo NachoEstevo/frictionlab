@@ -21,7 +21,7 @@ export default async function AuditDashboardPage({ params }: { params: Promise<{
       <div className="grid gap-5">
         <WorkflowTimeline status={audit.status} toolCalls={audit.toolCalls} agentRuns={audit.agentRuns} />
         <div className="grid gap-5 xl:grid-cols-[390px_1fr_330px]">
-          <SnapshotViewer snapshot={audit.pageSnapshot} />
+          <SnapshotViewer snapshot={audit.pageSnapshot} screenshots={audit.screenshots} />
           <section className="panel rounded-[8px] p-5">
             <p className="mono text-xs uppercase muted">Synthetic swarm</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">

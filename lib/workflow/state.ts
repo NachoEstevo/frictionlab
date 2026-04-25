@@ -5,7 +5,9 @@ export async function getAuditState(auditRunId: string) {
     where: { id: auditRunId },
     include: {
       pageSnapshot: true,
-      screenshots: true,
+      screenshots: {
+        orderBy: { createdAt: "asc" }
+      },
       personas: true,
       sessions: {
         include: {
@@ -61,6 +63,9 @@ export async function getShareableReportState(shareId: string) {
       auditRun: {
         include: {
           pageSnapshot: true,
+          screenshots: {
+            orderBy: { createdAt: "asc" }
+          },
           personas: true,
           sessions: {
             include: {

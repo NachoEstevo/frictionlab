@@ -13,9 +13,18 @@ type SnapshotViewerProps = {
         metadata: unknown;
       }
     | null;
+  screenshots?: Array<{
+    viewport: string;
+    status: string;
+    url: string | null;
+    width: number | null;
+    height: number | null;
+    fallbackType: string | null;
+    error: string | null;
+  }>;
 };
 
-export function SnapshotViewer({ snapshot }: SnapshotViewerProps) {
+export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerProps) {
   if (!snapshot) {
     return (
       <div className="panel rounded-[8px] p-5">
@@ -28,6 +37,7 @@ export function SnapshotViewer({ snapshot }: SnapshotViewerProps) {
   const sections = asArray<PageSnapshot["sections"][number]>(snapshot.sections);
   const ctas = asArray<string>(snapshot.ctas);
   const metadata = asRecord(snapshot.metadata);
+  const primaryScreenshot = screenshots.find((screenshot) => screenshot.url) ?? screenshots[0];
 
   return (
     <div className="panel rounded-[8px] p-5">
@@ -41,6 +51,25 @@ export function SnapshotViewer({ snapshot }: SnapshotViewerProps) {
           <span className="rounded-full border border-yellow-300/30 px-3 py-1 text-xs text-yellow-200">Fallback used</span>
         ) : null}
       </div>
+
+      {primaryScreenshot ? (
+        <div className="mt-5 overflow-hidden rounded-[8px] border border-white/10 bg-black/30">
+          {primaryScreenshot.url ? (
+            <img
+              alt={`${primaryScreenshot.viewport} screenshot`}
+              className="max-h-[360px] w-full object-cover object-top"
+              height={primaryScreenshot.height ?? undefined}
+              src={primaryScreenshot.url}
+              width={primaryScreenshot.width ?? undefined}
+            />
+          ) : (
+            <div className="p-4">
+              <p className="mono text-xs uppercase text-yellow-200">{primaryScreenshot.status}</p>
+              <p className="mt-2 text-sm muted">{primaryScreenshot.error || "Screenshot unavailable; DOM evidence is shown below."}</p>
+            </div>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-5 grid gap-3">
         {sections.slice(0, 5).map((section) => (

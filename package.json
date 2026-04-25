@@ -18,6 +18,7 @@
     "@ai-sdk/openai": "latest",
     "@gsap/react": "^2.1.2",
     "@prisma/client": "6.19.3",
+    "@vercel/blob": "^2.3.3",
     "ai": "latest",
     "cheerio": "latest",
     "clsx": "latest",

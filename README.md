@@ -14,6 +14,7 @@ The goal is simple: replace subjective landing-page feedback with a repeatable r
 - Produces prioritized friction findings tied to evidence references or explicit `missing_information`.
 - Creates recommendations, copy variants, a shareable report, and a Presenter Report storyboard.
 - Persists the entire audit workflow in Postgres with inspectable tool and agent events.
+- Captures optional desktop/mobile screenshots with Browserless and stores them in Vercel Blob when both credentials are configured.
 - Supports demo/offline operation through `MOCK_MODE=true`.
 
 ## Why It Exists
@@ -108,7 +109,7 @@ DEMO_FALLBACK="true"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-Optional future integrations:
+Optional integrations:
 
 ```bash
 AI_GATEWAY_API_KEY=""
@@ -201,12 +202,12 @@ Do not commit provider keys, database URLs, Vercel tokens, or local deployment m
 
 ## Current Scope
 
-P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, persisted workflow state, report UI, public share links, and Presenter Report data.
+P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, optional Browserless screenshot capture with Vercel Blob storage, persisted workflow state, report UI, public share links, and Presenter Report data.
+
+When `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are both set, each audit attempts desktop and mobile screenshots. If either credential is missing, FrictionLab records an explicit fallback screenshot event and continues with DOM evidence.
 
 P1 candidates:
 
-- Browserless screenshots
-- Vercel Blob asset uploads
 - Vercel Workflow / WDK durable execution
 - AI Gateway routing
 - Optional video rendering from Presenter Report scenes

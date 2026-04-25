@@ -26,8 +26,6 @@ export type RuntimeReadiness = {
 
 export function getCurrentRuntimeReadiness(): RuntimeReadiness {
   return getRuntimeReadiness(getEnv(), {
-    browserlessToken: process.env.BROWSERLESS_TOKEN,
-    blobReadWriteToken: process.env.BLOB_READ_WRITE_TOKEN,
     appUrlConfigured: Boolean(process.env.NEXT_PUBLIC_APP_URL)
   });
 }
@@ -52,8 +50,8 @@ export function getRuntimeReadiness(
     demoFallback: env.demoFallback
       ? ready("DEMO_FALLBACK is enabled for blocked or failing page fetches.")
       : disabled("DEMO_FALLBACK is disabled; fetch failures will fail the run."),
-    browserless: optional(optionalEnv.browserlessToken, "Browserless screenshots are optional P1."),
-    blob: optional(optionalEnv.blobReadWriteToken, "Vercel Blob asset upload is optional P1."),
+    browserless: optional(optionalEnv.browserlessToken ?? env.browserlessToken, "Browserless screenshot capture is configured."),
+    blob: optional(optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken, "Vercel Blob screenshot storage is configured."),
     remotion: env.enableRemotionRender
       ? ready("Presenter video rendering is enabled.")
       : disabled("Presenter video rendering is disabled in P0."),

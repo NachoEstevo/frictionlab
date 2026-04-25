@@ -38,12 +38,14 @@ Runtime behavior:
 - `DEMO_FALLBACK=true`
 - `NEXT_PUBLIC_APP_URL=https://frictionlab-rho.vercel.app`
 
-Optional P1/P2 integrations:
+Optional integrations:
 
 - `AI_GATEWAY_API_KEY`
 - `BROWSERLESS_TOKEN`
 - `BLOB_READ_WRITE_TOKEN`
 - `ENABLE_REMOTION_RENDER=false`
+
+Screenshot capture is active only when both `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are present. With one or both missing, audits continue and persist a fallback screenshot record instead of failing the workflow.
 
 Never commit `.env`, `.env.local`, `.vercel/` or provider secrets.
 

@@ -6,6 +6,8 @@ export type AppEnv = {
   strongModel: string;
   mockMode: boolean;
   demoFallback: boolean;
+  browserlessToken?: string;
+  blobReadWriteToken?: string;
   enableRemotionRender: boolean;
   appUrl: string;
 };
@@ -19,6 +21,8 @@ export function getEnv(): AppEnv {
     strongModel: process.env.FRICTIONLAB_STRONG_MODEL || "anthropic:claude-sonnet-4-5",
     mockMode: parseBoolean(process.env.MOCK_MODE, false),
     demoFallback: parseBoolean(process.env.DEMO_FALLBACK, true),
+    browserlessToken: process.env.BROWSERLESS_TOKEN,
+    blobReadWriteToken: process.env.BLOB_READ_WRITE_TOKEN,
     enableRemotionRender: parseBoolean(process.env.ENABLE_REMOTION_RENDER, false),
     appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   };

@@ -7,6 +7,8 @@ import { extractVisibleContent } from "@/lib/extraction/extract-visible-content"
 import { fetchPageHtml } from "@/lib/extraction/fetch-page-html";
 import type { AuditInput } from "@/lib/schemas/audit";
 import type { PageSnapshot } from "@/lib/schemas/page";
+import { captureAuditScreenshots } from "@/lib/screenshots/capture-audit-screenshots";
+import { uploadScreenshotToBlob } from "@/lib/screenshots/upload-screenshot-to-blob";
 import type { FallbackAuditArtifacts } from "@/lib/workflow/fallbacks";
 
 export async function runAuditWorkflow(auditRunId: string, input: AuditInput) {
@@ -33,6 +35,7 @@ export async function runAuditWorkflow(auditRunId: string, input: AuditInput) {
           metadata: {
             ...(snapshot.metadata || {}),
             statusCode: fetched.statusCode,
+            finalUrl: fetched.finalUrl,
             fallbackUsed: false
           }
         };
@@ -65,16 +68,36 @@ export async function runAuditWorkflow(auditRunId: string, input: AuditInput) {
       }
     });
 
+    const screenshotUrl =
+      typeof pageSnapshot.metadata?.finalUrl === "string" ? pageSnapshot.metadata.finalUrl : input.url;
+    const screenshots = await withToolCall(auditRunId, "captureScreenshots", { url: screenshotUrl }, async () =>
+      captureAuditScreenshots({
+        auditRunId,
+        url: screenshotUrl,
+        browserlessToken: env.browserlessToken,
+        uploadScreenshot: env.blobReadWriteToken
+          ? (uploadInput) =>
+              uploadScreenshotToBlob({
+                ...uploadInput,
+                blobReadWriteToken: env.blobReadWriteToken
+              })
+          : undefined
+      })
+    );
+
+    await prisma.screenshot.deleteMany({ where: { auditRunId } });
     await prisma.screenshot.createMany({
-      data: [
-        {
-          auditRunId,
-          viewport: "desktop",
-          status: "FALLBACK",
-          fallbackType: "DOM_SNAPSHOT",
-          error: "Browserless screenshot is deferred to P1; audit continued with DOM evidence."
-        }
-      ]
+      data: screenshots.map((screenshot) => ({
+        auditRunId,
+        viewport: screenshot.viewport,
+        status: screenshot.status,
+        url: screenshot.url,
+        blobPath: screenshot.blobPath,
+        width: screenshot.width,
+        height: screenshot.height,
+        fallbackType: screenshot.fallbackType,
+        error: screenshot.error
+      }))
     });
 
     const artifacts = await withAgentRun(auditRunId, "audit_synthesis", { input, pageSnapshot }, async () =>
