@@ -65,14 +65,12 @@ export function AuditForm() {
   }
 
   return (
-    <div className="panel rounded-[8px] p-5">
+    <div className="audit-form-card">
       <div className="grid gap-4">
-        <div className="grid grid-cols-2 gap-2 rounded-[8px] border border-white/10 bg-black/30 p-1">
+        <div className="audit-type-toggle">
           {(["LANDING", "WEBAPP"] as const).map((auditType) => (
             <button
-              className={`rounded-[6px] px-3 py-2 text-sm font-semibold ${
-                form.auditType === auditType ? "bg-[var(--lime)] text-black" : "text-white/70"
-              }`}
+              className={form.auditType === auditType ? "is-active" : ""}
               key={auditType}
               onClick={() => setForm({ ...form, auditType })}
               type="button"
@@ -85,7 +83,7 @@ export function AuditForm() {
         <label className="grid gap-2">
           <span className="text-xs uppercase muted mono">{form.auditType === "WEBAPP" ? "Signup or app URL" : "Landing page URL"}</span>
           <input
-            className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+            className="audit-input"
             value={form.url}
             onChange={(event) => setForm({ ...form, url: event.target.value })}
           />
@@ -95,7 +93,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Target audience</span>
             <textarea
-              className="min-h-24 rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input min-h-24"
               value={form.targetAudience}
               onChange={(event) => setForm({ ...form, targetAudience: event.target.value })}
             />
@@ -103,7 +101,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Conversion goal</span>
             <textarea
-              className="min-h-24 rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input min-h-24"
               value={form.conversionGoal}
               onChange={(event) => setForm({ ...form, conversionGoal: event.target.value })}
             />
@@ -114,7 +112,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Business</span>
             <select
-              className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input"
               value={form.businessType}
               onChange={(event) => setForm({ ...form, businessType: event.target.value })}
             >
@@ -129,7 +127,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Language</span>
             <input
-              className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input"
               value={form.language}
               onChange={(event) => setForm({ ...form, language: event.target.value })}
             />
@@ -137,7 +135,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Market</span>
             <input
-              className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input"
               value={form.market}
               onChange={(event) => setForm({ ...form, market: event.target.value })}
             />
@@ -145,7 +143,7 @@ export function AuditForm() {
           <label className="grid gap-2">
             <span className="text-xs uppercase muted mono">Personas</span>
             <input
-              className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+              className="audit-input"
               min={2}
               max={6}
               type="number"
@@ -158,18 +156,18 @@ export function AuditForm() {
         <label className="grid gap-2">
           <span className="text-xs uppercase muted mono">Brand tone</span>
           <input
-            className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+            className="audit-input"
             value={form.brandTone}
             onChange={(event) => setForm({ ...form, brandTone: event.target.value })}
           />
         </label>
 
         {form.auditType === "WEBAPP" ? (
-          <div className="grid gap-4 rounded-[8px] border border-white/10 bg-white/[0.03] p-4">
+          <div className="audit-webapp-fields">
             <label className="grid gap-2">
               <span className="text-xs uppercase muted mono">Agent scenario</span>
               <textarea
-                className="min-h-28 rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                className="audit-input min-h-28"
                 value={form.scenarioPrompt}
                 onChange={(event) => setForm({ ...form, scenarioPrompt: event.target.value })}
               />
@@ -178,7 +176,7 @@ export function AuditForm() {
               <label className="grid gap-2">
                 <span className="text-xs uppercase muted mono">Allowed domains</span>
                 <input
-                  className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                  className="audit-input"
                   value={form.allowedDomains}
                   onChange={(event) => setForm({ ...form, allowedDomains: event.target.value })}
                 />
@@ -186,7 +184,7 @@ export function AuditForm() {
               <label className="grid gap-2">
                 <span className="text-xs uppercase muted mono">Max steps</span>
                 <input
-                  className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                  className="audit-input"
                   min={1}
                   max={30}
                   type="number"
@@ -210,9 +208,9 @@ export function AuditForm() {
 
       {error ? <p className="mt-4 rounded-[6px] border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p> : null}
 
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="audit-action-row">
         <button
-          className="lime-glow inline-flex items-center gap-2 rounded-[6px] bg-[var(--lime)] px-4 py-3 text-sm font-semibold text-black disabled:opacity-50"
+          className="audit-primary-button lime-glow"
           disabled={isSubmitting}
           onClick={() => submitAudit(false)}
           type="button"
@@ -221,7 +219,7 @@ export function AuditForm() {
           Run real audit
         </button>
         <button
-          className="inline-flex items-center gap-2 rounded-[6px] border border-white/10 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="audit-secondary-button"
           disabled={isSubmitting}
           onClick={() => submitAudit(true)}
           type="button"

@@ -1,34 +1,93 @@
 import Link from "next/link";
-import { ArrowRight, FileText, FlaskConical, Gauge, Share2 } from "lucide-react";
+import {
+  ArrowRight,
+  Code2,
+  FileSearch,
+  FileText,
+  FlaskConical,
+  Gauge,
+  Layers3,
+  ListChecks,
+  MousePointerClick,
+  Network,
+  Share2,
+  TriangleAlert
+} from "lucide-react";
 import { LabConsole } from "@/components/landing/lab-console";
 import { LabStageGrid } from "@/components/landing/lab-stage-grid";
 import { LandingMotion } from "@/components/landing/landing-motion";
 
-const proofPoints = ["Synthetic user swarms", "Evidence-backed findings", "Presenter Report"];
+const proofPoints = ["4 buyer personas", "Evidence-bound findings", "Shareable report"];
 
 const problemSignals = [
   {
-    label: "Before launch",
-    title: "The page looks polished, but nobody knows where buyers hesitate.",
-    copy: "FrictionLab runs pre-flight conversion research before paid traffic turns guesswork into budget burn."
+    label: "Offer clarity",
+    title: "The page looks polished, but buyers still miss what changed for them.",
+    copy: "FrictionLab extracts the visible offer, CTA path, proof, and missing context before the launch room debates taste."
   },
   {
-    label: "During the run",
-    title: "Personas pressure-test the offer, trust proof, CTA path, and missing context.",
-    copy: "Each synthetic buyer reads differently: founder, evaluator, operator, and skeptical buyer signals stay separate."
+    label: "Trust proof",
+    title: "Claims need evidence close to the moment of doubt.",
+    copy: "Synthetic buyers surface where evaluators ask for integrations, security, examples, pricing, or risk reversal."
   },
   {
-    label: "After the run",
-    title: "The output is a report people can use in a product or hackathon room.",
-    copy: "Findings become severity-ranked recommendations, rewrite ideas, implementation checklist, and a Presenter Report."
+    label: "CTA risk",
+    title: "The next step can feel too expensive before the page earns commitment.",
+    copy: "Every recommendation is ranked by severity and tied to the section, copy, or missing proof that caused the hesitation."
   }
 ];
 
 const usefulOutputs = [
-  { label: "Score", title: "Conversion readiness", copy: "A directional score with the main reasons it moved." },
-  { label: "Map", title: "Friction evidence", copy: "Visible proof, weak claims, missing objections, and CTA timing." },
-  { label: "Copy", title: "Rewrite candidates", copy: "Hero, CTA, FAQ, and trust copy variants tied to findings." },
-  { label: "Room", title: "Presenter Report", copy: "A concise storyboard for explaining the audit in a demo or review." }
+  {
+    label: "Score",
+    title: "Conversion readiness",
+    copy: "62 / 100 with the reasons it moved: pricing context, proof gap, and CTA risk.",
+    icon: Gauge,
+    className: "output-card-large"
+  },
+  {
+    label: "Map",
+    title: "Friction evidence map",
+    copy: "Evidence refs connect findings to hero copy, CTA labels, proof blocks, FAQ gaps, and page sections.",
+    icon: Network,
+    className: "output-card-large"
+  },
+  {
+    label: "Copy",
+    title: "Rewrite candidates",
+    copy: "Hero, CTA, FAQ, and trust copy variants generated from specific findings instead of generic advice.",
+    icon: FileText,
+    className: ""
+  },
+  {
+    label: "Persona",
+    title: "Buyer objections",
+    copy: "Founder, evaluator, operator, and skeptical buyer objections stay separate so teams know which doubt to resolve.",
+    icon: MousePointerClick,
+    className: ""
+  },
+  {
+    label: "Fixes",
+    title: "Implementation checklist",
+    copy: "Prioritized fixes move from high-severity conversion blockers to medium proof gaps and polish work.",
+    icon: ListChecks,
+    className: ""
+  },
+  {
+    label: "Room",
+    title: "Presenter Report",
+    copy: "A short storyboard for explaining what the lab found in demo rooms, reviews, and investor updates.",
+    icon: Share2,
+    className: "output-card-wide"
+  }
+];
+
+const pipelineCards = [
+  { title: "Page extraction", copy: "Fetch visible content, CTA path, proof inventory, objections, and screenshot evidence when available.", icon: FileSearch },
+  { title: "Evidence model", copy: "Normalize findings around refs such as E-01 Hero claim, E-02 CTA label, and E-03 Missing pricing anchor.", icon: Layers3 },
+  { title: "Persona simulation", copy: "Run founders, evaluators, operators, and skeptical buyers with different trust thresholds.", icon: FlaskConical },
+  { title: "Findings ranking", copy: "Score severity by conversion risk, affected personas, and evidence strength.", icon: TriangleAlert },
+  { title: "Report generation", copy: "Package the score, findings, copy variants, checklist, and Presenter Report into a shareable artifact.", icon: Code2 }
 ];
 
 function BrandLogo({ size = "nav" }: { size?: "nav" | "hero" | "footer" }) {
@@ -57,7 +116,7 @@ export default function HomePage() {
             <BrandLogo />
           </Link>
           <div className="hidden items-center gap-7 text-sm text-white/[0.62] md:flex">
-            <a href="#live-audit">Lab</a>
+            <a href="#live-audit">Demo</a>
             <a href="#research">Method</a>
             <a href="#outputs">Outputs</a>
           </div>
@@ -65,7 +124,7 @@ export default function HomePage() {
             className="nav-cta inline-flex items-center gap-2 rounded-full bg-[var(--lime)] px-4 py-2 text-sm font-semibold transition hover:bg-white active:scale-[0.98]"
             href="/audit/new"
           >
-            New audit
+            Run audit
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -85,9 +144,17 @@ export default function HomePage() {
               Find the friction before your buyers do.
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-8 text-white/[0.68]">
-              Paste a public landing page. FrictionLab extracts the offer, sends synthetic buyers through it,
-              binds findings to evidence, and packages a shareable report.
+              Paste a public landing page. FrictionLab sends synthetic buyers through the offer, ties every
+              finding to evidence, and packages a report your team can act on.
             </p>
+            <form action="/audit/new" className="run-audit-command mt-9" aria-label="Run an audit">
+              <span className="mono">url</span>
+              <input aria-label="Landing page URL" name="url" placeholder="https://yourlanding.com" type="url" />
+              <button type="submit">
+                Run audit
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
             <div className="mt-7 flex flex-wrap gap-2">
               {proofPoints.map((point) => (
                 <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-medium text-white/[0.72]" key={point}>
@@ -96,18 +163,18 @@ export default function HomePage() {
               ))}
             </div>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <a
+              <Link
                 className="lime-glow inline-flex items-center justify-center gap-2 rounded-full bg-[var(--lime)] px-6 py-4 text-sm font-bold text-black transition hover:scale-[1.02] active:scale-[0.98]"
-                href="#lab-form"
+                href="/audit/new"
               >
                 Run the lab
                 <FlaskConical className="h-4 w-4" />
-              </a>
+              </Link>
               <Link
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/[0.16] bg-white/[0.06] px-6 py-4 text-sm font-bold text-white transition hover:border-white/[0.38] hover:bg-white/[0.1] active:scale-[0.98]"
                 href="/audit/new"
               >
-                Open full audit page
+                Load demo report
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -122,9 +189,9 @@ export default function HomePage() {
       <section className="px-4 pb-16 md:px-8 md:pb-24">
         <div className="mx-auto grid w-[min(1360px,100%)] gap-3 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="panel rounded-[8px] p-6 md:p-8" data-scale-fade>
-            <p className="mono text-xs uppercase tracking-[0.24em] text-[var(--lime)]">Project idea</p>
+            <p className="mono text-xs uppercase tracking-[0.24em] text-[var(--lime)]">Why it exists</p>
             <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1] tracking-[-0.04em] text-white md:text-6xl">
-              A research lab between landing-page taste and real conversion data.
+              Polished pages still hide conversion risk.
             </h2>
           </div>
           <div className="problem-grid grid gap-3">
@@ -149,8 +216,8 @@ export default function HomePage() {
               </h2>
             </div>
             <p className="max-w-2xl text-lg leading-8 text-white/[0.66]">
-              The animations are the product model: page layers are extracted, user paths are simulated, evidence is
-              mapped, and the final report is composed for sharing.
+              The interface shows the pipeline: page evidence is extracted, buyer paths are simulated, recommendations
+              are proven against source material, and the final report is packaged for sharing.
             </p>
           </div>
 
@@ -160,14 +227,14 @@ export default function HomePage() {
 
       <section className="border-y border-white/10 bg-white/[0.025] py-8">
         <div className="marquee-track mono text-sm uppercase tracking-[0.24em] text-white/[0.56]">
-          <span>synthetic user swarms</span>
+          <span>4 buyer personas</span>
           <span>evidence-backed findings</span>
-          <span>shareable report</span>
+          <span>12 evidence refs</span>
           <span>Presenter Report</span>
           <span>AI conversion research</span>
-          <span>synthetic user swarms</span>
+          <span>4 buyer personas</span>
           <span>evidence-backed findings</span>
-          <span>shareable report</span>
+          <span>12 evidence refs</span>
           <span>Presenter Report</span>
           <span>AI conversion research</span>
         </div>
@@ -181,18 +248,132 @@ export default function HomePage() {
               Useful artifacts, not another transcript.
             </h2>
           </div>
-          <div className="deliverable-grid grid gap-3 sm:grid-cols-2">
-            {usefulOutputs.map((output) => (
-              <article className="panel-soft output-card rounded-[8px] p-5" data-scale-fade key={output.title}>
-                <div className="mb-7 flex items-center justify-between">
-                  <span className="mono text-xs text-[var(--lime)]">{output.label}</span>
-                  {output.label === "Room" ? <Share2 className="h-4 w-4 text-[var(--lime)]" /> : output.label === "Score" ? <Gauge className="h-4 w-4 text-[var(--lime)]" /> : <FileText className="h-4 w-4 text-[var(--lime)]" />}
-                </div>
-                <h3 className="text-2xl font-semibold tracking-[-0.025em] text-white">{output.title}</h3>
-                <p className="mt-4 text-sm leading-6 text-white/[0.62]">{output.copy}</p>
-              </article>
-            ))}
+          <div className="deliverable-grid grid gap-3">
+            {usefulOutputs.map((output) => {
+              const OutputIcon = output.icon;
+
+              return (
+                <article className={`panel-soft output-card rounded-[8px] p-5 ${output.className}`} data-scale-fade key={output.title}>
+                  <div className="mb-7 flex items-center justify-between">
+                    <span className="mono text-xs text-[var(--lime)]">{output.label}</span>
+                    <OutputIcon className="h-4 w-4 text-[var(--lime)]" />
+                  </div>
+                  <h3 className="text-2xl font-semibold tracking-[-0.025em] text-white">{output.title}</h3>
+                  <p className="mt-4 text-sm leading-6 text-white/[0.62]">{output.copy}</p>
+                  {output.label === "Score" ? (
+                    <div className="score-module mt-6">
+                      <strong>62</strong>
+                      <span>/ 100</span>
+                      <div>
+                        <i style={{ width: "62%" }} />
+                      </div>
+                    </div>
+                  ) : null}
+                  {output.label === "Map" ? (
+                    <div className="evidence-ref-row mt-6">
+                      {["E-01", "E-02", "E-03", "E-04"].map((ref) => (
+                        <span key={ref}>{ref}</span>
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-24 md:px-8 md:pb-36">
+        <div className="mx-auto grid w-[min(1360px,100%)] gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="panel evidence-preview rounded-[8px] p-6 md:p-8" data-scale-fade>
+            <p className="mono text-xs uppercase tracking-[0.24em] text-[var(--lime)]">Evidence E-03</p>
+            <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1] tracking-[-0.04em] text-white md:text-6xl">
+              Every finding has a source, a severity, and a next move.
+            </h2>
+            <div className="mini-page-map mt-8" aria-hidden="true">
+              <span className="is-hero">hero claim</span>
+              <span>proof block</span>
+              <span className="is-hot">missing pricing anchor</span>
+              <span>first CTA</span>
+            </div>
+          </div>
+
+          <article className="panel-soft finding-card rounded-[8px] p-6 md:p-8" data-scale-fade>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="severity-pill">High severity</span>
+              <span className="evidence-pill">E-03</span>
+              <span className="evidence-pill">Evaluator</span>
+              <span className="evidence-pill">Skeptical buyer</span>
+            </div>
+            <h3 className="mt-8 text-3xl font-semibold leading-tight tracking-[-0.035em] text-white">
+              Pricing context appears too late.
+            </h3>
+            <p className="mt-4 text-base leading-7 text-white/[0.66]">
+              First CTA asks for commitment before any pricing expectation or risk-reversal appears. Evaluators
+              understand the offer, but hesitate because effort and cost are not bounded.
+            </p>
+            <div className="finding-detail-grid mt-7">
+              <div>
+                <p className="mono">Recommendation</p>
+                <span>Add a pricing expectation or risk-reversal line near the first CTA.</span>
+              </div>
+              <div>
+                <p className="mono">Rewrite candidate</p>
+                <span>Start free, see pricing before setup, and get a sample report in minutes.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="px-4 pb-24 md:px-8 md:pb-36">
+        <div className="mx-auto w-[min(1360px,100%)]">
+          <div className="mb-10 grid gap-5 lg:grid-cols-[0.8fr_1fr] lg:items-end">
+            <div>
+              <p className="mono mb-5 text-xs uppercase tracking-[0.26em] text-[var(--lime)]">Research pipeline</p>
+              <h2 className="max-w-4xl text-[clamp(2.4rem,5vw,5rem)] font-semibold leading-[0.96] tracking-[-0.045em] text-white">
+                Built as a synthetic research pipeline, not a prompt wrapper.
+              </h2>
+            </div>
+            <p className="max-w-2xl text-lg leading-8 text-white/[0.66]">
+              FrictionLab turns public page evidence into structured simulations, ranked findings, and useful artifacts.
+              The landing should make that architecture visible.
+            </p>
+          </div>
+          <div className="pipeline-grid">
+            {pipelineCards.map((card) => {
+              const PipelineIcon = card.icon;
+
+              return (
+                <article className="panel-soft pipeline-card rounded-[8px] p-5" data-scale-fade key={card.title}>
+                  <PipelineIcon className="h-5 w-5 text-[var(--lime)]" />
+                  <h3>{card.title}</h3>
+                  <p>{card.copy}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-20 md:px-8 md:pb-28">
+        <div className="final-cta mx-auto w-[min(1080px,100%)] rounded-[8px] p-6 text-center md:p-10">
+          <p className="mono text-xs uppercase tracking-[0.24em] text-[var(--lime)]">Run before launch</p>
+          <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-semibold leading-[1] tracking-[-0.04em] text-white md:text-6xl">
+            Run a lab before you launch.
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/[0.64]">
+            Paste a public landing page and leave with evidence, affected personas, rewrite candidates, and a report
+            your team can act on.
+          </p>
+          <form action="/audit/new" className="run-audit-command mx-auto mt-8" aria-label="Run an audit from final CTA">
+            <span className="mono">url</span>
+            <input aria-label="Landing page URL" name="url" placeholder="https://yourlanding.com" type="url" />
+            <button type="submit">
+              Run audit
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </form>
         </div>
       </section>
 
@@ -200,9 +381,9 @@ export default function HomePage() {
         <div className="mx-auto flex w-[min(1360px,100%)] flex-col gap-5 border-t border-white/10 pt-8 text-sm text-white/[0.50] md:flex-row md:items-center md:justify-between">
           <BrandLogo size="footer" />
           <div className="flex gap-5">
-            <a href="#live-audit">Lab</a>
+            <a href="#live-audit">Demo</a>
             <a href="#research">Method</a>
-            <a href="/audit/new">New audit</a>
+            <a href="/audit/new">Run audit</a>
           </div>
         </div>
       </footer>
