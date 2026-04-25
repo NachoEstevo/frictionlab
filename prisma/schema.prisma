@@ -18,6 +18,7 @@ model AuditRun {
   market          String?
   brandTone       String?
   personaCount    Int      @default(4)
+  auditType       String   @default("LANDING")
   status          String   @default("CREATED")
   mode            String   @default("LIVE")
   conversionScore Int?
@@ -35,6 +36,7 @@ model AuditRun {
   copyVariants    CopyVariant[]
   report          Report?
   presenterReport PresenterReport?
+  browserRun      BrowserRun?
   agentRuns       AgentRun[]
   toolCalls       ToolCall[]
   shareableReport ShareableReport?
@@ -70,6 +72,60 @@ model PageSnapshot {
   links       Json
   metadata    Json?
   createdAt   DateTime @default(now())
+}
+
+model BrowserRun {
+  id              String   @id @default(cuid())
+  auditRunId      String   @unique
+  auditRun        AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+  provider        String
+  remoteSessionId String?
+  status          String   @default("RUNNING")
+  startUrl        String
+  finalUrl        String?
+  metadata        Json?
+  error           String?
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  steps           BrowserStep[]
+  mailboxEvents   MailboxEvent[]
+}
+
+model BrowserStep {
+  id           String     @id @default(cuid())
+  browserRunId String
+  browserRun   BrowserRun @relation(fields: [browserRunId], references: [id], onDelete: Cascade)
+  order        Int
+  actionType   String
+  target       String?
+  url          String?
+  title        String?
+  observation  String
+  screenshotUrl String?
+  status       String
+  error        String?
+  metadata     Json?
+  createdAt    DateTime   @default(now())
+
+  @@index([browserRunId])
+}
+
+model MailboxEvent {
+  id               String     @id @default(cuid())
+  browserRunId     String
+  browserRun       BrowserRun @relation(fields: [browserRunId], references: [id], onDelete: Cascade)
+  emailAlias       String
+  subject          String?
+  fromAddress      String?
+  confirmationLink String?
+  confirmationCode String?
+  status           String
+  error            String?
+  createdAt        DateTime   @default(now())
+
+  @@index([browserRunId])
+  @@index([emailAlias])
 }
 
 model Persona {

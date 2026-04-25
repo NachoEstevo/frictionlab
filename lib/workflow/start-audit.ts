@@ -3,6 +3,7 @@ import { getEnv } from "@/lib/env";
 import { AuditInputSchema, type AuditInput } from "@/lib/schemas/audit";
 import { seedDemoRun } from "@/lib/demo/seed-run";
 import { runAuditWorkflow } from "@/lib/workflow/run-audit-workflow";
+import { runWebappAuditWorkflow } from "@/lib/workflow/run-webapp-audit-workflow";
 import { after } from "next/server";
 
 type ScheduleAuditWorkflow = (auditRunId: string, input: AuditInput) => void;
@@ -30,8 +31,9 @@ export async function startAudit(rawInput: unknown) {
       market: input.market,
       brandTone: input.brandTone,
       personaCount: input.personaCount,
+      auditType: input.auditType,
       status: "RUNNING",
-      mode: "LIVE"
+      mode: input.auditType === "WEBAPP" ? "WEBAPP" : "LIVE"
     }
   });
 
@@ -42,7 +44,11 @@ export async function startAudit(rawInput: unknown) {
 export const scheduleAuditWorkflow: ScheduleAuditWorkflow = (auditRunId, input) => {
   after(async () => {
     try {
-      await runAuditWorkflow(auditRunId, input);
+      if (input.auditType === "WEBAPP") {
+        await runWebappAuditWorkflow(auditRunId, input);
+      } else {
+        await runAuditWorkflow(auditRunId, input);
+      }
     } catch (error) {
       console.error("Audit workflow failed after response", {
         auditRunId,
@@ -54,6 +60,7 @@ export const scheduleAuditWorkflow: ScheduleAuditWorkflow = (auditRunId, input) 
 
 export function normalizeAuditInputForDemo(input?: Partial<AuditInput>): AuditInput {
   return AuditInputSchema.parse({
+    auditType: input?.auditType || "LANDING",
     url: input?.url || "https://launchpilot.example",
     targetAudience: input?.targetAudience || "B2B SaaS founders preparing a product launch",
     conversionGoal: input?.conversionGoal || "Book a demo",

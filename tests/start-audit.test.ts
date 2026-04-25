@@ -26,8 +26,13 @@ vi.mock("@/lib/workflow/run-audit-workflow", () => ({
   runAuditWorkflow: vi.fn()
 }));
 
+vi.mock("@/lib/workflow/run-webapp-audit-workflow", () => ({
+  runWebappAuditWorkflow: vi.fn()
+}));
+
 describe("startAudit", () => {
   const input: AuditInput = {
+    auditType: "LANDING",
     url: "https://example.com",
     targetAudience: "B2B SaaS founders",
     conversionGoal: "Book a demo",
@@ -74,6 +79,43 @@ describe("startAudit", () => {
     await scheduledTasks[0]?.();
     expect(runAuditWorkflow).toHaveBeenCalledWith("audit_123", input);
   });
+
+  it("creates a webapp run and schedules the webapp workflow", async () => {
+    const { prisma } = await import("@/lib/db");
+    const { runAuditWorkflow } = await import("@/lib/workflow/run-audit-workflow");
+    const { runWebappAuditWorkflow } = await import("@/lib/workflow/run-webapp-audit-workflow");
+    const { startAudit } = await import("@/lib/workflow/start-audit");
+
+    const webappInput = {
+      ...input,
+      auditType: "WEBAPP" as const,
+      scenarioPrompt: "Sign up, confirm the account and create the first project.",
+      signupAllowed: true,
+      allowedDomains: ["example.com"],
+      maxSteps: 8,
+      mailboxMode: "GMAIL_IMAP" as const
+    };
+
+    vi.mocked(prisma.auditRun.create).mockResolvedValue(
+      buildAuditRun({ id: "audit_webapp_123", status: "RUNNING", mode: "WEBAPP" })
+    );
+
+    const result = await startAudit(webappInput);
+
+    expect(result).toEqual({ auditRunId: "audit_webapp_123", status: "RUNNING" });
+    expect(prisma.auditRun.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          mode: "WEBAPP",
+          auditType: "WEBAPP"
+        })
+      })
+    );
+
+    await scheduledTasks[0]?.();
+    expect(runAuditWorkflow).not.toHaveBeenCalled();
+    expect(runWebappAuditWorkflow).toHaveBeenCalledWith("audit_webapp_123", webappInput);
+  });
 });
 
 function buildAuditRun(overrides: Partial<AuditRun> = {}): AuditRun {
@@ -89,6 +131,7 @@ function buildAuditRun(overrides: Partial<AuditRun> = {}): AuditRun {
     brandTone: "clear",
     personaCount: 4,
     status: "RUNNING",
+    auditType: "LANDING",
     mode: "LIVE",
     conversionScore: null,
     error: null,

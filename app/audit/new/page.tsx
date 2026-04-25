@@ -11,7 +11,7 @@ export default function NewAuditPage() {
           <p className="mono text-xs uppercase text-[var(--lime)]">New audit</p>
           <h1 className="mt-3 text-4xl font-semibold">Run a real synthetic UX audit.</h1>
           <p className="mt-4 leading-7 muted">
-            The happy path fetches the page, extracts evidence, runs structured AI research and stores a shareable report.
+            Audit a public landing page or let a controlled browser agent sign up, confirm email and inspect a real webapp flow.
           </p>
         </div>
         <AuditForm />

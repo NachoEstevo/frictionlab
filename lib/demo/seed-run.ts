@@ -23,6 +23,7 @@ export async function seedDemoRun(input: AuditInput = launchPilotInput) {
       market: demoInput.market,
       brandTone: demoInput.brandTone,
       personaCount: demoInput.personaCount,
+      auditType: demoInput.auditType,
       status: "RUNNING",
       mode: "DEMO"
     }

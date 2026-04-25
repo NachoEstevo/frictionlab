@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowRight, FlaskConical, Loader2 } from "lucide-react";
 
 type FormState = {
+  auditType: "LANDING" | "WEBAPP";
   url: string;
   targetAudience: string;
   conversionGoal: string;
@@ -13,9 +14,14 @@ type FormState = {
   market: string;
   brandTone: string;
   personaCount: number;
+  scenarioPrompt: string;
+  signupAllowed: boolean;
+  allowedDomains: string;
+  maxSteps: number;
 };
 
 const defaultState: FormState = {
+  auditType: "LANDING",
   url: "https://www.vercel.com",
   targetAudience: "technical founders evaluating developer platforms",
   conversionGoal: "Start a trial",
@@ -23,7 +29,11 @@ const defaultState: FormState = {
   language: "en",
   market: "US",
   brandTone: "precise, technical and premium",
-  personaCount: 4
+  personaCount: 4,
+  scenarioPrompt: "Sign up, confirm the account by email, complete onboarding and create the first meaningful project.",
+  signupAllowed: true,
+  allowedDomains: "vercel.com",
+  maxSteps: 12
 };
 
 export function AuditForm() {
@@ -40,7 +50,7 @@ export function AuditForm() {
       const response = await fetch("/api/audits", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...form, demoMode })
+        body: JSON.stringify(buildPayload(form, demoMode))
       });
 
       const payload = await response.json();
@@ -57,8 +67,23 @@ export function AuditForm() {
   return (
     <div className="panel rounded-[8px] p-5">
       <div className="grid gap-4">
+        <div className="grid grid-cols-2 gap-2 rounded-[8px] border border-white/10 bg-black/30 p-1">
+          {(["LANDING", "WEBAPP"] as const).map((auditType) => (
+            <button
+              className={`rounded-[6px] px-3 py-2 text-sm font-semibold ${
+                form.auditType === auditType ? "bg-[var(--lime)] text-black" : "text-white/70"
+              }`}
+              key={auditType}
+              onClick={() => setForm({ ...form, auditType })}
+              type="button"
+            >
+              {auditType === "LANDING" ? "Landing audit" : "Webapp audit"}
+            </button>
+          ))}
+        </div>
+
         <label className="grid gap-2">
-          <span className="text-xs uppercase muted mono">Landing page URL</span>
+          <span className="text-xs uppercase muted mono">{form.auditType === "WEBAPP" ? "Signup or app URL" : "Landing page URL"}</span>
           <input
             className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
             value={form.url}
@@ -138,6 +163,49 @@ export function AuditForm() {
             onChange={(event) => setForm({ ...form, brandTone: event.target.value })}
           />
         </label>
+
+        {form.auditType === "WEBAPP" ? (
+          <div className="grid gap-4 rounded-[8px] border border-white/10 bg-white/[0.03] p-4">
+            <label className="grid gap-2">
+              <span className="text-xs uppercase muted mono">Agent scenario</span>
+              <textarea
+                className="min-h-28 rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                value={form.scenarioPrompt}
+                onChange={(event) => setForm({ ...form, scenarioPrompt: event.target.value })}
+              />
+            </label>
+            <div className="grid gap-4 md:grid-cols-[1fr_140px]">
+              <label className="grid gap-2">
+                <span className="text-xs uppercase muted mono">Allowed domains</span>
+                <input
+                  className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                  value={form.allowedDomains}
+                  onChange={(event) => setForm({ ...form, allowedDomains: event.target.value })}
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-xs uppercase muted mono">Max steps</span>
+                <input
+                  className="rounded-[6px] border border-white/10 bg-black/40 px-3 py-3 text-sm outline-none focus:border-[var(--lime)]"
+                  min={1}
+                  max={30}
+                  type="number"
+                  value={form.maxSteps}
+                  onChange={(event) => setForm({ ...form, maxSteps: Number(event.target.value) })}
+                />
+              </label>
+            </div>
+            <label className="flex items-center gap-3 text-sm">
+              <input
+                checked={form.signupAllowed}
+                className="h-4 w-4 accent-[var(--lime)]"
+                onChange={(event) => setForm({ ...form, signupAllowed: event.target.checked })}
+                type="checkbox"
+              />
+              Autonomous signup is allowed for this target
+            </label>
+          </div>
+        ) : null}
       </div>
 
       {error ? <p className="mt-4 rounded-[6px] border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p> : null}
@@ -164,4 +232,35 @@ export function AuditForm() {
       </div>
     </div>
   );
+}
+
+function buildPayload(form: FormState, demoMode: boolean) {
+  const base = {
+    url: form.url,
+    targetAudience: form.targetAudience,
+    conversionGoal: form.conversionGoal,
+    businessType: form.businessType,
+    language: form.language,
+    market: form.market,
+    brandTone: form.brandTone,
+    personaCount: form.personaCount,
+    demoMode
+  };
+
+  if (form.auditType === "LANDING") {
+    return { ...base, auditType: "LANDING" };
+  }
+
+  return {
+    ...base,
+    auditType: "WEBAPP",
+    scenarioPrompt: form.scenarioPrompt,
+    signupAllowed: form.signupAllowed,
+    allowedDomains: form.allowedDomains
+      .split(",")
+      .map((domain) => domain.trim())
+      .filter(Boolean),
+    maxSteps: form.maxSteps,
+    mailboxMode: "GMAIL_IMAP"
+  };
 }

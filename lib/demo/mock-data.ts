@@ -2,6 +2,7 @@ import type { AuditInput } from "@/lib/schemas/audit";
 import type { PageSnapshot } from "@/lib/schemas/page";
 
 export const launchPilotInput: AuditInput = {
+  auditType: "LANDING",
   url: "https://launchpilot.example",
   targetAudience: "B2B SaaS founders preparing a product launch",
   conversionGoal: "Book a demo",

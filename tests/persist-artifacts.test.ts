@@ -99,6 +99,7 @@ function firstMockArg(mock: { mock: { calls: unknown[][] } }) {
 
 function buildFallbackInput() {
   const input: AuditInput = {
+    auditType: "LANDING",
     url: "https://example.com",
     targetAudience: "B2B SaaS founders",
     conversionGoal: "Book a demo",

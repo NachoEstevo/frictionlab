@@ -30,6 +30,16 @@ export async function getAuditState(auditRunId: string) {
           }
         }
       },
+      browserRun: {
+        include: {
+          steps: {
+            orderBy: { order: "asc" }
+          },
+          mailboxEvents: {
+            orderBy: { createdAt: "asc" }
+          }
+        }
+      },
       shareableReport: true,
       agentRuns: {
         orderBy: { startedAt: "asc" }
@@ -80,6 +90,12 @@ export async function getShareableReportState(shareId: string) {
           presenterReport: {
             include: {
               scenes: { orderBy: { order: "asc" } }
+            }
+          },
+          browserRun: {
+            include: {
+              steps: { orderBy: { order: "asc" } },
+              mailboxEvents: { orderBy: { createdAt: "asc" } }
             }
           },
           shareableReport: true

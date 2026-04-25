@@ -9,7 +9,15 @@ export type AppEnv = {
   mockMode: boolean;
   demoFallback: boolean;
   browserlessToken?: string;
+  browserlessWsUrl?: string;
   blobReadWriteToken?: string;
+  webappBrowserProvider?: "browserless";
+  webappMaxSteps?: number;
+  agentMailboxHost?: string;
+  agentMailboxPort?: number;
+  agentMailboxSecure?: boolean;
+  agentMailboxUser?: string;
+  agentMailboxAppPassword?: string;
   enableRemotionRender: boolean;
   appUrl: string;
 };
@@ -26,7 +34,15 @@ export function getEnv(): AppEnv {
     mockMode: parseBoolean(process.env.MOCK_MODE, false),
     demoFallback: parseBoolean(process.env.DEMO_FALLBACK, true),
     browserlessToken: process.env.BROWSERLESS_TOKEN,
+    browserlessWsUrl: process.env.BROWSERLESS_WS_URL,
     blobReadWriteToken: process.env.BLOB_READ_WRITE_TOKEN,
+    webappBrowserProvider: "browserless",
+    webappMaxSteps: parseInteger(process.env.WEBAPP_MAX_STEPS, 20),
+    agentMailboxHost: process.env.AGENT_MAILBOX_HOST || "imap.gmail.com",
+    agentMailboxPort: parseInteger(process.env.AGENT_MAILBOX_PORT, 993),
+    agentMailboxSecure: parseBoolean(process.env.AGENT_MAILBOX_SECURE, true),
+    agentMailboxUser: process.env.AGENT_MAILBOX_USER,
+    agentMailboxAppPassword: process.env.AGENT_MAILBOX_APP_PASSWORD,
     enableRemotionRender: parseBoolean(process.env.ENABLE_REMOTION_RENDER, false),
     appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   };
@@ -35,4 +51,10 @@ export function getEnv(): AppEnv {
 export function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined || value === "") return fallback;
   return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+function parseInteger(value: string | undefined, fallback: number): number {
+  if (value === undefined || value === "") return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
