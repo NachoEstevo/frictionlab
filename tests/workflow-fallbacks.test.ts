@@ -5,6 +5,7 @@ import type { AuditInput } from "@/lib/schemas/audit";
 describe("workflow fallbacks", () => {
   it("creates evidence-backed fallback artifacts when AI is unavailable", () => {
     const input: AuditInput = {
+      auditType: "LANDING",
       url: "https://example.com",
       targetAudience: "B2B SaaS founders evaluating launch software",
       conversionGoal: "Book a demo",

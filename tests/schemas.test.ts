@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AuditInputSchema } from "@/lib/schemas/audit";
+import { AuditInputSchema, WebappAuditInputSchema } from "@/lib/schemas/audit";
 import { FindingSchema } from "@/lib/schemas/finding";
 
 describe("audit schemas", () => {
@@ -11,9 +11,51 @@ describe("audit schemas", () => {
       businessType: "saas"
     });
 
+    expect(input.auditType).toBe("LANDING");
     expect(input.personaCount).toBe(4);
     expect(input.language).toBe("en");
     expect(input.demoMode).toBe(false);
+  });
+
+  it("accepts webapp audit input with explicit guardrails", () => {
+    const input = WebappAuditInputSchema.parse({
+      auditType: "WEBAPP",
+      url: "https://app.example.com/signup",
+      targetAudience: "B2B SaaS operators evaluating workflow software",
+      conversionGoal: "Create an account and complete onboarding",
+      businessType: "saas",
+      scenarioPrompt: "Sign up, confirm the account, create the first project and identify onboarding friction.",
+      signupAllowed: true,
+      allowedDomains: ["app.example.com", "example.com"],
+      maxSteps: 12,
+      mailboxMode: "GMAIL_IMAP",
+      testUserProfile: {
+        firstName: "Maya",
+        lastName: "Rivera",
+        company: "FrictionLab Test",
+        role: "Growth lead"
+      }
+    });
+
+    expect(input.auditType).toBe("WEBAPP");
+    expect(input.mailboxMode).toBe("GMAIL_IMAP");
+    expect(input.maxSteps).toBe(12);
+    expect(input.allowedDomains).toEqual(["app.example.com", "example.com"]);
+  });
+
+  it("rejects webapp audit input without an allowed domain list", () => {
+    expect(() =>
+      AuditInputSchema.parse({
+        auditType: "WEBAPP",
+        url: "https://app.example.com/signup",
+        targetAudience: "B2B SaaS operators evaluating workflow software",
+        conversionGoal: "Create an account",
+        businessType: "saas",
+        scenarioPrompt: "Create an account and inspect onboarding.",
+        signupAllowed: true,
+        allowedDomains: []
+      })
+    ).toThrow(/allowedDomains/i);
   });
 
   it("requires evidence or missing_information category for findings", () => {

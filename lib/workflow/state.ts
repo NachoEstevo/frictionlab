@@ -30,6 +30,16 @@ export async function getAuditState(auditRunId: string) {
           }
         }
       },
+      browserRun: {
+        include: {
+          steps: {
+            orderBy: { order: "asc" }
+          },
+          mailboxEvents: {
+            orderBy: { createdAt: "asc" }
+          }
+        }
+      },
       shareableReport: true,
       agentRuns: {
         orderBy: { startedAt: "asc" }
@@ -42,7 +52,7 @@ export async function getAuditState(auditRunId: string) {
 }
 
 export async function getAuditEvents(auditRunId: string) {
-  const [agentRuns, toolCalls] = await Promise.all([
+  const [agentRuns, toolCalls, browserRun] = await Promise.all([
     prisma.agentRun.findMany({
       where: { auditRunId },
       orderBy: { startedAt: "asc" }
@@ -50,10 +60,21 @@ export async function getAuditEvents(auditRunId: string) {
     prisma.toolCall.findMany({
       where: { auditRunId },
       orderBy: { startedAt: "asc" }
+    }),
+    prisma.browserRun.findUnique({
+      where: { auditRunId },
+      include: {
+        steps: {
+          orderBy: { order: "asc" }
+        },
+        mailboxEvents: {
+          orderBy: { createdAt: "asc" }
+        }
+      }
     })
   ]);
 
-  return { agentRuns, toolCalls };
+  return { agentRuns, toolCalls, browserRun };
 }
 
 export async function getShareableReportState(shareId: string) {
@@ -80,6 +101,12 @@ export async function getShareableReportState(shareId: string) {
           presenterReport: {
             include: {
               scenes: { orderBy: { order: "asc" } }
+            }
+          },
+          browserRun: {
+            include: {
+              steps: { orderBy: { order: "asc" } },
+              mailboxEvents: { orderBy: { createdAt: "asc" } }
             }
           },
           shareableReport: true

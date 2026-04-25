@@ -4,6 +4,7 @@ import { FindingCard } from "@/components/finding-card";
 import { PersonaCard } from "@/components/persona-card";
 import { ScoreRing } from "@/components/score-ring";
 import { SnapshotViewer } from "@/components/snapshot-viewer";
+import { WebappEvidence } from "@/components/webapp-evidence";
 import { WorkflowTimeline } from "@/components/workflow-timeline";
 import { getAuditState } from "@/lib/workflow/state";
 
@@ -20,6 +21,7 @@ export default async function AuditDashboardPage({ params }: { params: Promise<{
       <Header id={audit.id} shareId={audit.shareableReport?.shareId} />
       <div className="grid gap-5">
         <WorkflowTimeline status={audit.status} toolCalls={audit.toolCalls} agentRuns={audit.agentRuns} />
+        <WebappEvidence browserRun={audit.browserRun} />
         <div className="grid gap-5 xl:grid-cols-[390px_1fr_330px]">
           <SnapshotViewer snapshot={audit.pageSnapshot} screenshots={audit.screenshots} />
           <section className="panel rounded-[8px] p-5">

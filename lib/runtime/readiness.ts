@@ -19,6 +19,8 @@ export type RuntimeReadiness = {
     mockMode: RuntimeCheck;
     demoFallback: RuntimeCheck;
     browserless: RuntimeCheck;
+    webappBrowser: RuntimeCheck;
+    mailbox: RuntimeCheck;
     blob: RuntimeCheck;
     remotion: RuntimeCheck;
     appUrl: RuntimeCheck;
@@ -56,6 +58,15 @@ export function getRuntimeReadiness(
       "Browserless screenshot capture is configured.",
       "Browserless screenshot capture is not configured; audits continue with DOM evidence."
     ),
+    webappBrowser: optionalIntegration(
+      env.browserlessWsUrl || env.browserlessToken,
+      "Browserless webapp agent browser is configured.",
+      "Browserless webapp agent browser is not configured; webapp audits will stop with partial evidence."
+    ),
+    mailbox:
+      env.agentMailboxUser && env.agentMailboxAppPassword
+        ? ready("Agent Gmail mailbox is configured for email confirmations.")
+        : optional(undefined, "Agent Gmail mailbox is not configured; webapp audits cannot confirm signup emails automatically."),
     blob: optionalIntegration(
       optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken,
       "Vercel Blob screenshot storage is configured.",
