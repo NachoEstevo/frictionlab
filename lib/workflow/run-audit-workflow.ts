@@ -308,7 +308,7 @@ export async function persistArtifacts(
       where: { id: auditRunId },
       data: { shareId }
     });
-  });
+  }, { timeout: 20_000 });
 }
 
 async function withToolCall<T>(auditRunId: string, toolName: string, input: unknown, action: () => Promise<T>): Promise<T> {

@@ -51,8 +51,16 @@ export function getRuntimeReadiness(
     demoFallback: env.demoFallback
       ? ready("DEMO_FALLBACK is enabled for blocked or failing page fetches.")
       : disabled("DEMO_FALLBACK is disabled; fetch failures will fail the run."),
-    browserless: optional(optionalEnv.browserlessToken ?? env.browserlessToken, "Browserless screenshot capture is configured."),
-    blob: optional(optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken, "Vercel Blob screenshot storage is configured."),
+    browserless: optionalIntegration(
+      optionalEnv.browserlessToken ?? env.browserlessToken,
+      "Browserless screenshot capture is configured.",
+      "Browserless screenshot capture is not configured; audits continue with DOM evidence."
+    ),
+    blob: optionalIntegration(
+      optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken,
+      "Vercel Blob screenshot storage is configured.",
+      "Vercel Blob screenshot storage is not configured; audits continue with DOM evidence."
+    ),
     remotion: env.enableRemotionRender
       ? ready("Presenter video rendering is enabled.")
       : disabled("Presenter video rendering is disabled in P0."),
@@ -96,4 +104,8 @@ function disabled(message: string): RuntimeCheck {
 
 function optional(value: string | undefined, message: string): RuntimeCheck {
   return value ? ready(message) : { status: "optional", message };
+}
+
+function optionalIntegration(value: string | undefined, readyMessage: string, missingMessage: string): RuntimeCheck {
+  return value ? ready(readyMessage) : { status: "optional", message: missingMessage };
 }

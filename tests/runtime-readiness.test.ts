@@ -95,4 +95,27 @@ describe("runtime readiness", () => {
     expect(readiness.canRunRealAi).toBe(true);
     expect(readiness.checks.aiProvider.status).toBe("ready");
   });
+
+  it("reports screenshot integrations as optional when their tokens are missing", () => {
+    const readiness = getRuntimeReadiness({
+      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      openaiApiKey: "sk-test",
+      anthropicApiKey: "sk-ant-test",
+      mockMode: false,
+      demoFallback: true,
+      enableRemotionRender: false,
+      appUrl: "http://localhost:3000",
+      fastModel: "openai:gpt-4.1-mini",
+      strongModel: "anthropic:claude-sonnet-4-5"
+    });
+
+    expect(readiness.checks.browserless).toEqual({
+      status: "optional",
+      message: "Browserless screenshot capture is not configured; audits continue with DOM evidence."
+    });
+    expect(readiness.checks.blob).toEqual({
+      status: "optional",
+      message: "Vercel Blob screenshot storage is not configured; audits continue with DOM evidence."
+    });
+  });
 });
