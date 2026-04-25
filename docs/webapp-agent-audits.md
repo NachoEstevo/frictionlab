@@ -30,11 +30,16 @@ BROWSERLESS_WS_URL=""
 Required for autonomous email confirmation:
 
 ```bash
+AGENT_MAILBOX_USER="agent-inbox@gmail.com"
+AGENT_MAILBOX_APP_PASSWORD=""
+```
+
+Optional Gmail IMAP overrides, shown with their defaults:
+
+```bash
 AGENT_MAILBOX_HOST="imap.gmail.com"
 AGENT_MAILBOX_PORT="993"
 AGENT_MAILBOX_SECURE="true"
-AGENT_MAILBOX_USER="agent-inbox@gmail.com"
-AGENT_MAILBOX_APP_PASSWORD=""
 ```
 
 Optional screenshot persistence:
@@ -49,7 +54,7 @@ Without Browserless, the run stops as `PARTIAL` with explicit missing-integratio
 
 - Only audit apps where we have permission to create test accounts.
 - Set `allowedDomains` tightly; navigation outside those domains is blocked.
-- The runner stops on captcha, 2FA, payment steps, credit-card requests and destructive actions.
+- The runner stops when page evidence indicates captcha, 2FA or payment collection, and it blocks payment-like or destructive actions before execution.
 - Passwords, tokens, cookies and authorization-like fields are redacted before persistence.
 - Gmail is accessed through IMAP/API, not by visually logging into Gmail.
 - Confirmation links are used only when their host is within `allowedDomains`.

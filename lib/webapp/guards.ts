@@ -1,6 +1,8 @@
 const secretKeyPattern = /password|token|secret|cookie|authorization|api[_-]?key|session/i;
 const confirmationLinkPattern = /https?:\/\/[^\s"'<>]+/gi;
 const verificationCodePattern = /\b(?:code|verification code|confirm(?:ation)? code)\D{0,16}(\d{4,8})\b/gi;
+const destructiveActionPattern = /\b(delete|destroy|remove workspace|remove account|close account|deactivate|erase|drop|terminate|cancel subscription)\b/i;
+const paymentActionPattern = /\b(credit card|payment method|billing details|checkout|subscribe|upgrade plan|pay now|purchase)\b/i;
 
 export function buildAgentEmailAlias(mailboxUser: string, auditRunId: string): string {
   const [localPart, domain] = mailboxUser.split("@");
@@ -54,6 +56,13 @@ export function looksBlockedByHumanChallenge(text: string): string | null {
     return "Two-factor authentication detected.";
   }
   if (normalized.includes("payment method") || normalized.includes("credit card")) return "Payment step detected.";
+  return null;
+}
+
+export function getBlockedActionReason(action: { actionType: string; target?: string; value?: string; reason?: string }): string | null {
+  const actionText = [action.target, action.reason].filter(Boolean).join(" ");
+  if (destructiveActionPattern.test(actionText)) return "Destructive action blocked before execution.";
+  if (paymentActionPattern.test(actionText)) return "Payment action blocked before execution.";
   return null;
 }
 
