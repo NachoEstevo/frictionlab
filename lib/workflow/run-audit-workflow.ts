@@ -134,6 +134,8 @@ export async function persistArtifacts(
   artifacts: FallbackAuditArtifacts & { usedFallback?: boolean; fallbackReason?: string }
 ) {
   const shareId = nanoid(10);
+  const persistenceIds = buildPersistenceIdMap(auditRunId, artifacts);
+  const report = mapReportForPersistence(artifacts.report, persistenceIds);
 
   await prisma.$transaction(async (tx) => {
     const existingPresenter = await tx.presenterReport.findUnique({ where: { auditRunId } });
@@ -155,7 +157,7 @@ export async function persistArtifacts(
 
     await tx.persona.createMany({
       data: artifacts.personas.map((persona) => ({
-        id: persona.id,
+        id: persistenceIds.personas.get(persona.id) || namespaceArtifactId(auditRunId, persona.id),
         auditRunId,
         name: persona.name,
         segment: persona.segment,
@@ -177,9 +179,9 @@ export async function persistArtifacts(
     for (const session of artifacts.sessions) {
       await tx.personaSession.create({
         data: {
-          id: session.id,
+          id: namespaceArtifactId(auditRunId, session.id),
           auditRunId,
-          personaId: session.personaId,
+          personaId: persistenceIds.personas.get(session.personaId) || namespaceArtifactId(auditRunId, session.personaId),
           status: "COMPLETED",
           heroClarity: session.heroClarity,
           offerUnderstanding: session.offerUnderstanding,
@@ -212,12 +214,14 @@ export async function persistArtifacts(
 
     await tx.finding.createMany({
       data: artifacts.findings.map((finding) => ({
-        id: finding.id,
+        id: persistenceIds.findings.get(finding.id) || namespaceArtifactId(auditRunId, finding.id),
         auditRunId,
         category: finding.category,
         problem: finding.problem,
         evidence: finding.evidence as Prisma.InputJsonValue,
-        affectedPersonas: finding.affectedPersonas as Prisma.InputJsonValue,
+        affectedPersonas: finding.affectedPersonas.map((personaId) =>
+          persistenceIds.personas.get(personaId) || namespaceArtifactId(auditRunId, personaId)
+        ) as Prisma.InputJsonValue,
         severity: finding.severity,
         impact: finding.impact,
         effort: finding.effort,
@@ -229,9 +233,11 @@ export async function persistArtifacts(
 
     await tx.recommendation.createMany({
       data: artifacts.recommendations.map((recommendation) => ({
-        id: recommendation.id,
+        id: persistenceIds.recommendations.get(recommendation.id) || namespaceArtifactId(auditRunId, recommendation.id),
         auditRunId,
-        findingIds: recommendation.findingIds as Prisma.InputJsonValue,
+        findingIds: recommendation.findingIds.map((findingId) =>
+          persistenceIds.findings.get(findingId) || namespaceArtifactId(auditRunId, findingId)
+        ) as Prisma.InputJsonValue,
         title: recommendation.title,
         whyItMatters: recommendation.whyItMatters,
         implementation: recommendation.implementation,
@@ -244,7 +250,7 @@ export async function persistArtifacts(
 
     await tx.copyVariant.createMany({
       data: artifacts.copyVariants.map((copyVariant) => ({
-        id: copyVariant.id,
+        id: namespaceArtifactId(auditRunId, copyVariant.id),
         auditRunId,
         type: copyVariant.type,
         label: copyVariant.label,
@@ -256,18 +262,18 @@ export async function persistArtifacts(
     await tx.report.create({
       data: {
         auditRunId,
-        executiveSummary: artifacts.report.executiveSummary,
-        conversionScore: artifacts.report.conversionScore,
-        frictionMap: artifacts.report.frictionMap as Prisma.InputJsonValue,
-        personaOutcomes: artifacts.report.personaOutcomes as Prisma.InputJsonValue,
-        topBlockers: artifacts.report.topBlockers as Prisma.InputJsonValue,
-        trustGaps: artifacts.report.trustGaps as Prisma.InputJsonValue,
-        copyIssues: artifacts.report.copyIssues as Prisma.InputJsonValue,
-        uiIssues: artifacts.report.uiIssues as Prisma.InputJsonValue,
-        mobileIssues: artifacts.report.mobileIssues as Prisma.InputJsonValue,
-        recommendations: artifacts.report.recommendations as Prisma.InputJsonValue,
-        checklist: artifacts.report.checklist as Prisma.InputJsonValue,
-        fullJson: artifacts.report as Prisma.InputJsonValue
+        executiveSummary: report.executiveSummary,
+        conversionScore: report.conversionScore,
+        frictionMap: report.frictionMap as Prisma.InputJsonValue,
+        personaOutcomes: report.personaOutcomes as Prisma.InputJsonValue,
+        topBlockers: report.topBlockers as Prisma.InputJsonValue,
+        trustGaps: report.trustGaps as Prisma.InputJsonValue,
+        copyIssues: report.copyIssues as Prisma.InputJsonValue,
+        uiIssues: report.uiIssues as Prisma.InputJsonValue,
+        mobileIssues: report.mobileIssues as Prisma.InputJsonValue,
+        recommendations: report.recommendations as Prisma.InputJsonValue,
+        checklist: report.checklist as Prisma.InputJsonValue,
+        fullJson: report as Prisma.InputJsonValue
       }
     });
 
@@ -309,6 +315,49 @@ export async function persistArtifacts(
       data: { shareId }
     });
   }, { timeout: 20_000 });
+}
+
+type PersistenceIdMap = {
+  personas: Map<string, string>;
+  findings: Map<string, string>;
+  recommendations: Map<string, string>;
+};
+
+function buildPersistenceIdMap(auditRunId: string, artifacts: FallbackAuditArtifacts): PersistenceIdMap {
+  return {
+    personas: new Map(artifacts.personas.map((persona) => [persona.id, namespaceArtifactId(auditRunId, persona.id)])),
+    findings: new Map(artifacts.findings.map((finding) => [finding.id, namespaceArtifactId(auditRunId, finding.id)])),
+    recommendations: new Map(
+      artifacts.recommendations.map((recommendation) => [
+        recommendation.id,
+        namespaceArtifactId(auditRunId, recommendation.id)
+      ])
+    )
+  };
+}
+
+function mapReportForPersistence(report: FallbackAuditArtifacts["report"], ids: PersistenceIdMap) {
+  return {
+    ...report,
+    personaOutcomes: report.personaOutcomes.map((outcome) => ({
+      ...outcome,
+      personaId: ids.personas.get(outcome.personaId) || outcome.personaId
+    })),
+    topBlockers: report.topBlockers.map((finding) => ({
+      ...finding,
+      id: ids.findings.get(finding.id) || finding.id,
+      affectedPersonas: finding.affectedPersonas.map((personaId) => ids.personas.get(personaId) || personaId)
+    })),
+    recommendations: report.recommendations.map((recommendation) => ({
+      ...recommendation,
+      id: ids.recommendations.get(recommendation.id) || recommendation.id,
+      findingIds: recommendation.findingIds.map((findingId) => ids.findings.get(findingId) || findingId)
+    }))
+  };
+}
+
+function namespaceArtifactId(auditRunId: string, artifactId: string): string {
+  return `${auditRunId}__${artifactId}`;
 }
 
 async function withToolCall<T>(auditRunId: string, toolName: string, input: unknown, action: () => Promise<T>): Promise<T> {

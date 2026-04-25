@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuditInput } from "@/lib/schemas/audit";
 import type { PageSnapshot } from "@/lib/schemas/page";
 import { buildFallbackAuditArtifacts } from "@/lib/workflow/fallbacks";
@@ -55,6 +55,10 @@ vi.mock("@/lib/db", () => ({
 }));
 
 describe("persistArtifacts", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("uses an extended transaction timeout for artifact persistence", async () => {
     const { prisma } = await import("@/lib/db");
     const { persistArtifacts } = await import("@/lib/workflow/run-audit-workflow");
@@ -63,7 +67,35 @@ describe("persistArtifacts", () => {
 
     expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({ timeout: 20_000 }));
   });
+
+  it("namespaces artifact primary keys and relationship references by audit run", async () => {
+    const { persistArtifacts } = await import("@/lib/workflow/run-audit-workflow");
+
+    await persistArtifacts("audit_123", buildFallbackAuditArtifacts(buildFallbackInput()));
+
+    const personaCreateManyInput = firstMockArg(tx.persona.createMany);
+    expect(personaCreateManyInput?.data[0].id).toBe("audit_123__persona_maya");
+
+    const sessionCreateInput = firstMockArg(tx.personaSession.create);
+    expect(sessionCreateInput?.data.id).toBe("audit_123__session_persona_maya");
+    expect(sessionCreateInput?.data.personaId).toBe("audit_123__persona_maya");
+
+    const findingCreateManyInput = firstMockArg(tx.finding.createMany);
+    expect(findingCreateManyInput?.data[0].id).toBe("audit_123__finding_offer_clarity");
+    expect(findingCreateManyInput?.data[0].affectedPersonas).toContain("audit_123__persona_maya");
+
+    const recommendationCreateManyInput = firstMockArg(tx.recommendation.createMany);
+    expect(recommendationCreateManyInput?.data[0].id).toBe("audit_123__rec_hero_specificity");
+    expect(recommendationCreateManyInput?.data[0].findingIds).toContain("audit_123__finding_offer_clarity");
+
+    const reportCreateInput = firstMockArg(tx.report.create);
+    expect(reportCreateInput?.data.personaOutcomes[0].personaId).toBe("audit_123__persona_maya");
+  });
 });
+
+function firstMockArg(mock: { mock: { calls: unknown[][] } }) {
+  return mock.mock.calls[0]?.[0] as any;
+}
 
 function buildFallbackInput() {
   const input: AuditInput = {
