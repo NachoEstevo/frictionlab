@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import "@/components/landing/coded-research-asset.css";
+import "@/components/landing/coded-research-panels.css";
+import "@/components/landing/lab-console.css";
 import "./globals.css";
 
 const geist = Geist({

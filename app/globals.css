@@ -111,6 +111,33 @@ select {
   color: #050505 !important;
 }
 
+.brand-mark-shell {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(204, 255, 61, 0.24);
+  border-radius: 10px;
+  background: rgba(204, 255, 61, 0.08);
+  box-shadow: inset 0 0 18px rgba(204, 255, 61, 0.08), 0 0 24px rgba(204, 255, 61, 0.08);
+}
+
+.brand-mark-shell img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.hero-brand-lockup .brand-mark-shell {
+  width: 44px;
+  height: 44px;
+}
+
+.hero-brand-lockup .brand-mark-shell img {
+  width: 30px;
+  height: 30px;
+}
+
 .hero-orbit {
   position: absolute;
   inset: 11% -14% auto auto;
@@ -139,6 +166,10 @@ select {
   box-shadow: 0 28px 110px rgba(0, 0, 0, 0.58), 0 0 72px rgba(204, 255, 61, 0.1);
 }
 
+.hero-panel .coded-asset {
+  height: 100%;
+}
+
 .hero-panel-main {
   left: 4%;
   top: 0;
@@ -164,6 +195,73 @@ select {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.024)),
     rgba(5, 5, 5, 0.74);
+}
+
+.product-card {
+  padding: 0;
+}
+
+.product-card-copy {
+  background:
+    radial-gradient(circle at 0% 100%, rgba(204, 255, 61, 0.11), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.2));
+}
+
+.product-card-visual::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 34%),
+    radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.2));
+  content: "";
+  pointer-events: none;
+}
+
+.asset-copy,
+.workflow-card-copy {
+  isolation: isolate;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.82);
+}
+
+.asset-copy::before {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 150%;
+  background:
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72) 38%, rgba(0, 0, 0, 0.92)),
+    radial-gradient(circle at 16% 100%, rgba(204, 255, 61, 0.14), transparent 22rem);
+  content: "";
+}
+
+.workflow-card-copy {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.18) 72%, transparent),
+    radial-gradient(circle at 12% 82%, rgba(204, 255, 61, 0.12), transparent 16rem);
+}
+
+.problem-grid .panel-soft,
+.output-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(8, 8, 8, 0.76);
+}
+
+.output-card {
+  min-height: 150px;
+}
+
+.proof-signal {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(204, 255, 61, 0.28);
+  background:
+    radial-gradient(circle at 18% 55%, rgba(204, 255, 61, 0.9) 0 4px, transparent 5px),
+    radial-gradient(circle at 46% 42%, rgba(204, 255, 61, 0.64) 0 3px, transparent 4px),
+    radial-gradient(circle at 72% 58%, rgba(245, 245, 245, 0.7) 0 3px, transparent 4px),
+    linear-gradient(90deg, transparent 0 16%, rgba(204, 255, 61, 0.28) 17% 18%, transparent 19% 44%, rgba(204, 255, 61, 0.28) 45% 46%, transparent 47%),
+    #050505;
+  box-shadow: inset 0 0 40px rgba(204, 255, 61, 0.12);
 }
 
 .accordion-panel {
