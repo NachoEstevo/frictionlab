@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildAgentEmailAlias, extractEmailActions, isAllowedNavigationUrl, redactSecrets } from "@/lib/webapp/guards";
+import {
+  buildAgentEmailAlias,
+  extractEmailActions,
+  getBlockedActionReason,
+  isAllowedNavigationUrl,
+  redactSecrets
+} from "@/lib/webapp/guards";
 
 describe("webapp audit guardrails", () => {
   it("builds a plus-addressed Gmail alias for a run", () => {
@@ -19,6 +25,12 @@ describe("webapp audit guardrails", () => {
   it("blocks navigation outside allowed domains", () => {
     expect(isAllowedNavigationUrl("https://app.example.com/welcome", ["app.example.com"])).toBe(true);
     expect(isAllowedNavigationUrl("https://evil.example/phish", ["app.example.com"])).toBe(false);
+  });
+
+  it("blocks destructive or payment-like actions before execution", () => {
+    expect(getBlockedActionReason({ actionType: "click", target: "Delete workspace", reason: "Clean up" })).toMatch(/destructive/i);
+    expect(getBlockedActionReason({ actionType: "click", target: "Add credit card", reason: "Continue" })).toMatch(/payment/i);
+    expect(getBlockedActionReason({ actionType: "click", target: "Create project", reason: "Continue onboarding" })).toBeNull();
   });
 
   it("redacts passwords, tokens and cookies from persisted metadata", () => {

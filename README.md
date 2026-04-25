@@ -1,6 +1,6 @@
 # FrictionLab
 
-FrictionLab is an AI conversion research lab for landing pages. It takes a real URL, extracts page evidence, runs synthetic buyer personas through the offer, and turns the results into evidence-backed findings, copy recommendations, a shareable report, and a Presenter Report.
+FrictionLab is an AI conversion research lab for landing pages and early webapp flows. It takes a real URL, extracts page or browser-session evidence, runs synthetic buyer personas through the experience, and turns the results into evidence-backed findings, copy recommendations, a shareable report, and a Presenter Report.
 
 The goal is simple: replace subjective landing-page feedback with a repeatable research workflow teams can inspect, share, and ship against.
 
@@ -9,7 +9,9 @@ The goal is simple: replace subjective landing-page feedback with a repeatable r
 ## What It Does
 
 - Audits a public landing page URL with server-side extraction.
+- Audits permitted webapp signup/onboarding flows with a controlled Browserless/Playwright agent.
 - Extracts title, meta description, headings, CTAs, links, visible text, and page sections.
+- For webapp audits, persists browser steps, DOM observations, optional screenshots, and Gmail confirmation events.
 - Generates synthetic personas and session timelines with structured AI output.
 - Produces prioritized friction findings tied to evidence references or explicit `missing_information`.
 - Creates recommendations, copy variants, a shareable report, and a Presenter Report storyboard.
@@ -23,7 +25,7 @@ Most AI landing-page feedback is a single generic opinion. FrictionLab is built 
 
 ```mermaid
 flowchart LR
-  A["Landing URL"] --> B["DOM Evidence Extraction"]
+  A["Landing URL or Webapp URL"] --> B["DOM or Browser Evidence"]
   B --> C["Synthetic Personas"]
   C --> D["Session Simulation"]
   D --> E["Friction Findings"]
@@ -64,6 +66,7 @@ lib/
   workflow/                   Sequential persisted audit runner
   runtime/                    Deploy/runtime readiness checks
   schemas/                    Shared Zod contracts
+  webapp/                     Browser, mailbox, guardrail and navigation-agent services
 ```
 
 `POST /api/audits` creates a persisted `AuditRun` in `RUNNING` state, responds quickly, and schedules the workflow after the response. The dashboard polls until the run reaches `COMPLETED`, `PARTIAL`, `FAILED`, or `DEMO`.
@@ -123,9 +126,24 @@ Optional integrations:
 
 ```bash
 BROWSERLESS_TOKEN=""
+BROWSERLESS_WS_URL=""
 BLOB_READ_WRITE_TOKEN=""
 ENABLE_REMOTION_RENDER="false"
 ```
+
+Webapp agent audits:
+
+```bash
+WEBAPP_BROWSER_PROVIDER="browserless"
+WEBAPP_MAX_STEPS="20"
+AGENT_MAILBOX_HOST="imap.gmail.com"
+AGENT_MAILBOX_PORT="993"
+AGENT_MAILBOX_SECURE="true"
+AGENT_MAILBOX_USER=""
+AGENT_MAILBOX_APP_PASSWORD=""
+```
+
+`AGENT_MAILBOX_USER` should be a dedicated Gmail inbox used only for test accounts. FrictionLab uses plus-addressing for each run and stores only redacted event metadata, not mailbox secrets.
 
 ## Runtime Readiness
 
@@ -169,13 +187,35 @@ Create audit input:
 }
 ```
 
+Create webapp audit input:
+
+```json
+{
+  "auditType": "WEBAPP",
+  "url": "https://app.example.com/signup",
+  "targetAudience": "B2B SaaS operators evaluating workflow software",
+  "conversionGoal": "Create an account and complete onboarding",
+  "businessType": "saas",
+  "language": "en",
+  "personaCount": 4,
+  "demoMode": false,
+  "scenarioPrompt": "Sign up, confirm the account, complete onboarding and identify friction.",
+  "signupAllowed": true,
+  "allowedDomains": ["app.example.com", "example.com"],
+  "maxSteps": 12,
+  "mailboxMode": "GMAIL_IMAP"
+}
+```
+
 ## Scripts
 
 ```bash
 npm test
 npm run typecheck
 npm run build
+npm run verify
 npm run prisma:migrate
+npm run prisma:migrate:deploy
 ```
 
 ## Deployment
@@ -192,10 +232,11 @@ npx vercel deploy --prod
 After setting `DATABASE_URL` in Vercel, run production migrations:
 
 ```bash
-npx prisma migrate deploy
+npm run prisma:migrate:deploy
 ```
 
 More details are in [docs/deployment.md](docs/deployment.md).
+Webapp audit setup and smoke testing are in [docs/webapp-agent-audits.md](docs/webapp-agent-audits.md).
 
 ## Public Safety
 
@@ -211,11 +252,12 @@ Do not commit provider keys, database URLs, Vercel tokens, or local deployment m
 
 ## Current Scope
 
-P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, optional Browserless screenshot capture with Vercel Blob storage, persisted workflow state, report UI, public share links, and Presenter Report data.
+P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, optional Browserless screenshot capture with Vercel Blob storage, persisted workflow state, report UI, public share links, Presenter Report data, and controlled webapp signup/onboarding audits.
 
 When `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are both set, each audit attempts desktop and mobile screenshots. If either credential is missing, FrictionLab records an explicit fallback screenshot event and continues with DOM evidence.
 
 P1 candidates:
 
 - Vercel Workflow / WDK durable execution
+- Browserbase or E2B if Browserless is not enough for longer webapp sessions
 - Optional video rendering from Presenter Report scenes

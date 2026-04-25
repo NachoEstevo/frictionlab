@@ -23,17 +23,29 @@ export function LandingMotion() {
         const { isDesktop, reduceMotion } = context.conditions as { isDesktop: boolean; reduceMotion: boolean };
         if (reduceMotion) return;
 
-        gsap.fromTo(
-          q("[data-hero-visual]"),
-          { autoAlpha: 0, scale: 0.94, y: 36 },
-          { autoAlpha: 1, scale: 1, y: 0, duration: 1.1, ease: "power3.out" }
-        );
+        const heroCopy = q(".hero-copy");
+        const heroConsole = q(".lab-console");
+        const heroPanels = q(".hero-panel");
 
-        gsap.fromTo(
-          q(".hero-panel"),
-          { autoAlpha: 0, y: 42, rotationY: isDesktop ? -8 : 0 },
-          { autoAlpha: 1, y: 0, rotationY: 0, duration: 0.9, stagger: 0.12, ease: "power3.out", delay: 0.12 }
-        );
+        if (heroCopy.length) {
+          gsap.fromTo(heroCopy, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.85, ease: "power3.out" });
+        }
+
+        if (heroConsole.length) {
+          gsap.fromTo(
+            heroConsole,
+            { autoAlpha: 0, scale: 0.96, y: 36 },
+            { autoAlpha: 1, scale: 1, y: 0, duration: 1.05, ease: "power3.out", delay: 0.12 }
+          );
+        }
+
+        if (heroPanels.length) {
+          gsap.fromTo(
+            heroPanels,
+            { autoAlpha: 0, y: 42, rotationY: isDesktop ? -8 : 0 },
+            { autoAlpha: 1, y: 0, rotationY: 0, duration: 0.9, stagger: 0.12, ease: "power3.out", delay: 0.12 }
+          );
+        }
 
         gsap.utils.toArray<HTMLElement>(q("[data-scale-fade]")).forEach((element) => {
           gsap.fromTo(
@@ -54,23 +66,26 @@ export function LandingMotion() {
           );
         });
 
-        gsap.utils.toArray<HTMLElement>(q("[data-reveal-word]")).forEach((word, index) => {
-          gsap.fromTo(
-            word,
-            { autoAlpha: 0.12, y: 16 },
-            {
-              autoAlpha: 1,
-              y: 0,
-              ease: "none",
-              scrollTrigger: {
-                trigger: q("[data-reveal-copy]")[0],
-                start: `top+=${index * 4} 72%`,
-                end: `top+=${index * 4 + 120} 48%`,
-                scrub: true
+        const revealCopy = q("[data-reveal-copy]")[0];
+        if (revealCopy) {
+          gsap.utils.toArray<HTMLElement>(q("[data-reveal-word]")).forEach((word, index) => {
+            gsap.fromTo(
+              word,
+              { autoAlpha: 0.12, y: 16 },
+              {
+                autoAlpha: 1,
+                y: 0,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: revealCopy,
+                  start: `top+=${index * 4} 72%`,
+                  end: `top+=${index * 4 + 120} 48%`,
+                  scrub: true
+                }
               }
-            }
-          );
-        });
+            );
+          });
+        }
 
         gsap.utils.toArray<HTMLElement>(q("[data-stack-card]")).forEach((card, index) => {
           gsap.fromTo(

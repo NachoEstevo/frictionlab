@@ -9,8 +9,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm test && npm run build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "build:with-migrate": "prisma migrate deploy && next build",
     "postinstall": "prisma generate"
   },
   "dependencies": {

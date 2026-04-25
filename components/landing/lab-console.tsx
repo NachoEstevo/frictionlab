@@ -1,24 +1,27 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { ArrowRight, FlaskConical, RotateCcw } from "lucide-react";
+import { ArrowRight, RotateCcw } from "lucide-react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 
 gsap.registerPlugin(useGSAP);
 
 const labEvents = [
-  { label: "Extract", copy: "Offer, CTA path, proof, objections" },
-  { label: "Simulate", copy: "4 synthetic buyers with different trust thresholds" },
-  { label: "Prove", copy: "Findings ranked and bound to page evidence" },
-  { label: "Package", copy: "Report, copy variants, Presenter Report" }
+  { label: "Extract", copy: "Offer map, CTA path, proof inventory, missing context" },
+  { label: "Simulate", copy: "Founder, evaluator, operator, and skeptical buyer sessions" },
+  { label: "Prove", copy: "Findings ranked by severity and bound to evidence refs" },
+  { label: "Package", copy: "Shareable report, rewrite candidates, checklist, Presenter Report" }
 ];
 
 const personaSignals = [
   { name: "Founder", risk: "Offer clarity", score: "42.8%" },
   { name: "Evaluator", risk: "Trust proof", score: "58.4%" },
-  { name: "Buyer", risk: "Pricing context", score: "37.2%" }
+  { name: "Operator", risk: "Setup effort", score: "49.1%" },
+  { name: "Skeptic", risk: "Pricing context", score: "37.2%" }
 ];
+
+const evidenceRefs = ["E-01 Hero claim", "E-02 CTA label", "E-03 Pricing anchor", "E-04 Social proof"];
 
 const profiles = [
   {
@@ -59,8 +62,7 @@ export function LabConsole() {
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.to(q("[data-lab-scan]"), { yPercent: 210, duration: 4, ease: "none", repeat: -1 });
-        gsap.to(q("[data-lab-pulse]"), { scale: 1.12, autoAlpha: 0.5, duration: 1.5, yoyo: true, repeat: -1, ease: "sine.inOut" });
-        gsap.to(q("[data-lab-thread]"), { strokeDashoffset: -180, duration: 5.5, repeat: -1, ease: "none" });
+      gsap.to(q("[data-lab-thread]"), { strokeDashoffset: -180, duration: 5.5, repeat: -1, ease: "none" });
       });
     },
     { scope: rootRef }
@@ -73,8 +75,7 @@ export function LabConsole() {
       const q = gsap.utils.selector(root);
 
       gsap.fromTo(q(".lab-event-row.is-active"), { x: -8, autoAlpha: 0.62 }, { x: 0, autoAlpha: 1, duration: 0.35, ease: "power2.out" });
-      gsap.fromTo(q(".lab-core"), { scale: 0.96 }, { scale: 1, duration: 0.45, ease: "back.out(1.7)" });
-      gsap.fromTo(q(".lab-output-preview"), { y: 8, autoAlpha: 0.78 }, { y: 0, autoAlpha: 1, duration: 0.35, ease: "power2.out" });
+      gsap.fromTo(q(".lab-finding-preview"), { y: 8, autoAlpha: 0.78 }, { y: 0, autoAlpha: 1, duration: 0.35, ease: "power2.out" });
     },
     { scope: rootRef, dependencies: [activeStep, profileIndex] }
   );
@@ -186,13 +187,6 @@ export function LabConsole() {
             <path data-lab-thread d="M42 102 C126 184, 201 74, 279 190 C355 306, 421 148, 492 252" stroke="rgba(245,245,245,.32)" strokeWidth="1" strokeDasharray="7 10" />
           </svg>
 
-          <div className="lab-core">
-            <span data-lab-pulse />
-            <FlaskConical className="h-7 w-7 text-[var(--lime)]" />
-            <strong>{profile.personas}</strong>
-            <p>synthetic users</p>
-          </div>
-
           <div className="lab-event-stack">
             {labEvents.map((event, index) => (
               <button
@@ -222,14 +216,30 @@ export function LabConsole() {
             ))}
           </div>
 
-          <div className="lab-output-preview">
-            <p className="mono">{labEvents[activeStep].label}</p>
-            <div className="lab-output-bars">
-              <span />
-              <span />
-              <span />
+          <div className="lab-finding-preview">
+            <div className="lab-score-tile">
+              <p className="mono">Readiness</p>
+              <strong>62</strong>
+              <span>/ 100</span>
             </div>
-            <strong>{labEvents[activeStep].copy}</strong>
+            <div className="lab-finding-copy">
+              <div className="lab-finding-meta">
+                <span>High</span>
+                <span>E-03</span>
+                <span>Evaluator</span>
+                <span>Skeptical buyer</span>
+              </div>
+              <h3>Pricing context missing before first CTA</h3>
+              <p>First commitment point appears before cost expectation, risk reversal, or setup effort is bounded.</p>
+            </div>
+          </div>
+
+          <div className="lab-evidence-strip" aria-label="Evidence references">
+            {evidenceRefs.map((ref) => (
+              <button key={ref} onClick={() => setRunLabel(`${ref} inspected`)} type="button">
+                {ref}
+              </button>
+            ))}
           </div>
         </div>
       </div>

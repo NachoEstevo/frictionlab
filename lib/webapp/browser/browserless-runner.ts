@@ -3,7 +3,7 @@ import { getEnv } from "@/lib/env";
 import type { WebappAuditInput } from "@/lib/schemas/audit";
 import { generateNextWebappAction } from "@/lib/webapp/ai/navigation-agent";
 import { buildSnapshot, getObservation, observeStep } from "@/lib/webapp/browser/page-evidence";
-import { buildAgentEmailAlias, isAllowedNavigationUrl, looksBlockedByHumanChallenge } from "@/lib/webapp/guards";
+import { buildAgentEmailAlias, getBlockedActionReason, isAllowedNavigationUrl, looksBlockedByHumanChallenge } from "@/lib/webapp/guards";
 import { pollGmailForConfirmation, type GmailImapConfig } from "@/lib/webapp/mailbox/gmail-imap";
 import type { WebappMailboxEvent, WebappRunResult, WebappStepEvidence } from "@/lib/webapp/types";
 
@@ -59,6 +59,12 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
         if (action.actionType === "blocked") {
           steps.push(await observe(index, "blocked", action.target, "BLOCKED", action.reason));
           return finishResult("BLOCKED", page, steps, mailboxEvents, action.reason);
+        }
+
+        const blockedActionReason = getBlockedActionReason(action);
+        if (blockedActionReason) {
+          steps.push(await observe(index, "blocked", action.target, "BLOCKED", blockedActionReason));
+          return finishResult("BLOCKED", page, steps, mailboxEvents, blockedActionReason);
         }
 
         if (action.actionType === "wait_for_email") {

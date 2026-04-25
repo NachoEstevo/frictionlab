@@ -59,33 +59,48 @@ function AssetFrame({ children, variant, compact }: CodedResearchAssetProps & { 
         (context) => {
           const { isMobile, reduceMotion } = context.conditions as { isMobile: boolean; reduceMotion: boolean };
           if (reduceMotion) return;
+          const drift = q("[data-drift]");
+          const pulse = q("[data-pulse]");
+          const flow = q("[data-flow]");
+          const cursor = q("[data-cursor]");
+          const wave = q("[data-wave]");
 
-          gsap.fromTo(
-            q("[data-drift]"),
-            { autoAlpha: 0.28, y: isMobile ? 6 : 12 },
-            { autoAlpha: 1, y: isMobile ? -5 : -8, duration: 2.8, stagger: 0.08, repeat: -1, yoyo: true, ease: "sine.inOut" }
-          );
-          gsap.to(q("[data-pulse]"), {
-            scale: isMobile ? 1.1 : 1.18,
-            autoAlpha: 0.42,
-            duration: 1.5,
-            stagger: 0.12,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "center"
-          });
-          gsap.to(q("[data-flow]"), { strokeDashoffset: -180, duration: 5.5, repeat: -1, ease: "none" });
-          gsap.to(q("[data-cursor]"), { x: isMobile ? 22 : 40, y: isMobile ? -14 : -24, duration: 2.2, repeat: -1, yoyo: true, ease: "power2.inOut" });
-          gsap.to(q("[data-wave]"), {
-            scaleY: isMobile ? 1.35 : 1.55,
-            duration: 0.9,
-            stagger: { each: 0.04, from: "center" },
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "50% 100%"
-          });
+          if (drift.length) {
+            gsap.fromTo(
+              drift,
+              { autoAlpha: 0.28, y: isMobile ? 6 : 12 },
+              { autoAlpha: 1, y: isMobile ? -5 : -8, duration: 2.8, stagger: 0.08, repeat: -1, yoyo: true, ease: "sine.inOut" }
+            );
+          }
+          if (pulse.length) {
+            gsap.to(pulse, {
+              scale: isMobile ? 1.1 : 1.18,
+              autoAlpha: 0.42,
+              duration: 1.5,
+              stagger: 0.12,
+              repeat: -1,
+              yoyo: true,
+              ease: "sine.inOut",
+              transformOrigin: "center"
+            });
+          }
+          if (flow.length) {
+            gsap.to(flow, { strokeDashoffset: -180, duration: 5.5, repeat: -1, ease: "none" });
+          }
+          if (cursor.length) {
+            gsap.to(cursor, { x: isMobile ? 22 : 40, y: isMobile ? -14 : -24, duration: 2.2, repeat: -1, yoyo: true, ease: "power2.inOut" });
+          }
+          if (wave.length) {
+            gsap.to(wave, {
+              scaleY: isMobile ? 1.35 : 1.55,
+              duration: 0.9,
+              stagger: { each: 0.04, from: "center" },
+              repeat: -1,
+              yoyo: true,
+              ease: "sine.inOut",
+              transformOrigin: "50% 100%"
+            });
+          }
         },
         root
       );
