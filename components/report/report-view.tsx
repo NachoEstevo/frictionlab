@@ -1,10 +1,13 @@
 import { FindingCard } from "@/components/finding-card";
 import { ScoreRing } from "@/components/score-ring";
+import { getPrimaryScreenshotEvidence, type ScreenshotEvidenceRecord } from "@/lib/screenshots/report-evidence";
 import { asArray, asRecord, asStringArray } from "@/lib/ui/json";
+
 type ReportViewProps = {
   audit: {
     id: string;
     shareableReport: { shareId: string } | null;
+    screenshots?: ScreenshotEvidenceRecord[];
     report: {
       executiveSummary: string;
       conversionScore: number;
@@ -46,6 +49,7 @@ type ReportViewProps = {
 export function ReportView({ audit, publicMode = false }: ReportViewProps) {
   const report = audit.report;
   const checklist = asStringArray(report?.checklist);
+  const screenshotEvidence = getPrimaryScreenshotEvidence(audit.screenshots ?? []);
 
   if (!report) {
     return <div className="panel rounded-[8px] p-5 text-sm muted">Report is not ready.</div>;
@@ -73,6 +77,35 @@ export function ReportView({ audit, publicMode = false }: ReportViewProps) {
           <p className="mt-5 max-w-4xl text-lg leading-8 muted">{report.executiveSummary}</p>
         </div>
       </div>
+
+      {screenshotEvidence ? (
+        <section className="panel rounded-[8px] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="mono text-xs uppercase muted">Visual evidence</p>
+              <h2 className="mt-2 text-xl font-semibold">Captured page state</h2>
+            </div>
+            <span className="mono rounded-full border border-white/10 px-3 py-1 text-xs uppercase muted">
+              {screenshotEvidence.viewport} · {screenshotEvidence.status}
+            </span>
+          </div>
+          {screenshotEvidence.kind === "image" && screenshotEvidence.url ? (
+            <div className="mt-4 overflow-hidden rounded-[8px] border border-white/10 bg-black/30">
+              <img
+                alt={`${screenshotEvidence.viewport} screenshot evidence`}
+                className="max-h-[460px] w-full object-cover object-top"
+                height={screenshotEvidence.height ?? undefined}
+                src={screenshotEvidence.url}
+                width={screenshotEvidence.width ?? undefined}
+              />
+            </div>
+          ) : (
+            <p className="mt-4 rounded-[6px] border border-yellow-300/20 bg-yellow-300/5 p-3 text-sm text-yellow-100">
+              {screenshotEvidence.message}
+            </p>
+          )}
+        </section>
+      ) : null}
 
       <section className="panel rounded-[8px] p-5">
         <p className="mono text-xs uppercase muted">Top blockers</p>
