@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AuditDashboardPoller } from "@/components/audit-dashboard-poller";
 import { FindingCard } from "@/components/finding-card";
 import { PersonaCard } from "@/components/persona-card";
 import { ScoreRing } from "@/components/score-ring";
@@ -15,6 +16,7 @@ export default async function AuditDashboardPage({ params }: { params: Promise<{
 
   return (
     <div className="lab-container py-8">
+      <AuditDashboardPoller status={audit.status} />
       <Header id={audit.id} shareId={audit.shareableReport?.shareId} />
       <div className="grid gap-5">
         <WorkflowTimeline status={audit.status} toolCalls={audit.toolCalls} agentRuns={audit.agentRuns} />

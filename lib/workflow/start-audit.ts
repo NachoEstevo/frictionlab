@@ -3,6 +3,9 @@ import { getEnv } from "@/lib/env";
 import { AuditInputSchema, type AuditInput } from "@/lib/schemas/audit";
 import { seedDemoRun } from "@/lib/demo/seed-run";
 import { runAuditWorkflow } from "@/lib/workflow/run-audit-workflow";
+import { after } from "next/server";
+
+type ScheduleAuditWorkflow = (auditRunId: string, input: AuditInput) => void;
 
 export async function startAudit(rawInput: unknown) {
   const input = AuditInputSchema.parse(rawInput);
@@ -27,14 +30,27 @@ export async function startAudit(rawInput: unknown) {
       market: input.market,
       brandTone: input.brandTone,
       personaCount: input.personaCount,
-      status: "CREATED",
+      status: "RUNNING",
       mode: "LIVE"
     }
   });
 
-  const completedRun = await runAuditWorkflow(auditRun.id, input);
-  return { auditRunId: completedRun.id, status: completedRun.status };
+  scheduleAuditWorkflow(auditRun.id, input);
+  return { auditRunId: auditRun.id, status: auditRun.status };
 }
+
+export const scheduleAuditWorkflow: ScheduleAuditWorkflow = (auditRunId, input) => {
+  after(async () => {
+    try {
+      await runAuditWorkflow(auditRunId, input);
+    } catch (error) {
+      console.error("Audit workflow failed after response", {
+        auditRunId,
+        error: error instanceof Error ? error.message : "Unknown workflow error"
+      });
+    }
+  });
+};
 
 export function normalizeAuditInputForDemo(input?: Partial<AuditInput>): AuditInput {
   return AuditInputSchema.parse({
