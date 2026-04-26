@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 
@@ -15,6 +16,12 @@ type CheckAuditRateLimitInput = {
   now?: Date;
   limit?: number;
   windowSeconds?: number;
+};
+
+type RateLimitBucketRow = {
+  allowed: boolean;
+  count: number;
+  windowStart: Date;
 };
 
 const defaultAuditRoute = "POST /api/audits";
@@ -46,54 +53,42 @@ export async function checkAuditRateLimit(input: CheckAuditRateLimitInput): Prom
   const windowStart = getWindowStart(now, windowSeconds);
   const resetAt = new Date(windowStart.getTime() + windowSeconds * 1000);
 
-  const existing = await prisma.rateLimitBucket.findUnique({
-    where: {
-      keyHash_route: {
-        keyHash,
-        route
-      }
-    }
-  });
+  const [bucket] = await prisma.$queryRaw<RateLimitBucketRow[]>(Prisma.sql`
+    WITH upserted AS (
+      INSERT INTO "RateLimitBucket" ("id", "keyHash", "route", "windowStart", "count", "updatedAt")
+      VALUES (${randomUUID()}, ${keyHash}, ${route}, ${windowStart}, 1, ${now})
+      ON CONFLICT ("keyHash", "route") DO UPDATE SET
+        "windowStart" = CASE
+          WHEN "RateLimitBucket"."windowStart" <> EXCLUDED."windowStart" THEN EXCLUDED."windowStart"
+          ELSE "RateLimitBucket"."windowStart"
+        END,
+        "count" = CASE
+          WHEN "RateLimitBucket"."windowStart" <> EXCLUDED."windowStart" THEN 1
+          ELSE "RateLimitBucket"."count" + 1
+        END,
+        "updatedAt" = EXCLUDED."updatedAt"
+      WHERE
+        "RateLimitBucket"."windowStart" <> EXCLUDED."windowStart"
+        OR "RateLimitBucket"."count" < ${limit}
+      RETURNING true AS "allowed", "count", "windowStart"
+    ),
+    current_bucket AS (
+      SELECT false AS "allowed", "count", "windowStart"
+      FROM "RateLimitBucket"
+      WHERE "keyHash" = ${keyHash} AND "route" = ${route}
+      AND NOT EXISTS (SELECT 1 FROM upserted)
+    )
+    SELECT "allowed", "count", "windowStart" FROM upserted
+    UNION ALL
+    SELECT "allowed", "count", "windowStart" FROM current_bucket
+    LIMIT 1
+  `);
 
-  if (!existing) {
-    await prisma.rateLimitBucket.create({
-      data: { keyHash, route, windowStart, count: 1 }
-    });
-    return { allowed: true, limit, remaining: Math.max(limit - 1, 0), resetAt };
+  if (!bucket) {
+    throw new Error("Rate limit check failed to return a bucket.");
   }
 
-  if (existing.windowStart.getTime() !== windowStart.getTime()) {
-    await prisma.rateLimitBucket.update({
-      where: {
-        keyHash_route: {
-          keyHash,
-          route
-        }
-      },
-      data: { windowStart, count: 1 }
-    });
-    return { allowed: true, limit, remaining: Math.max(limit - 1, 0), resetAt };
-  }
-
-  if (existing.count >= limit) {
-    return { allowed: false, limit, remaining: 0, resetAt };
-  }
-
-  const updated = await prisma.rateLimitBucket.update({
-    where: {
-      keyHash_route: {
-        keyHash,
-        route
-      }
-    },
-    data: {
-      count: {
-        increment: 1
-      }
-    }
-  });
-
-  return { allowed: true, limit, remaining: Math.max(limit - updated.count, 0), resetAt };
+  return { allowed: bucket.allowed, limit, remaining: Math.max(limit - bucket.count, 0), resetAt };
 }
 
 export function getClientIp(request: Request): string {

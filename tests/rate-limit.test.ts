@@ -3,11 +3,7 @@ import { checkAuditRateLimit, getClientIp, hashRateLimitIdentifier } from "@/lib
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    rateLimitBucket: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn()
-    }
+    $queryRaw: vi.fn()
   }
 }));
 
@@ -31,24 +27,25 @@ describe("audit rate limit", () => {
     expect(getClientIp(request)).toBe("203.0.113.10");
   });
 
-  it("allows and creates a fresh bucket when none exists", async () => {
+  it("allows and creates a fresh bucket atomically when none exists", async () => {
     const { prisma } = await import("@/lib/db");
-    vi.mocked(prisma.rateLimitBucket.findUnique).mockResolvedValue(null);
-    vi.mocked(prisma.rateLimitBucket.create).mockResolvedValue({ count: 1, windowStart: new Date() } as any);
+    vi.mocked(prisma.$queryRaw).mockResolvedValue([
+      { allowed: true, count: 1, windowStart: new Date("2026-01-01T00:00:00.000Z") }
+    ] as any);
 
     await expect(checkAuditRateLimit({ identifier: "203.0.113.10", now: new Date("2026-01-01T00:00:00.000Z") })).resolves.toMatchObject({
       allowed: true,
       limit: 5,
       remaining: 4
     });
+    expect(prisma.$queryRaw).toHaveBeenCalledOnce();
   });
 
-  it("blocks when the current window is exhausted", async () => {
+  it("blocks when the atomic upsert reports the current window is exhausted", async () => {
     const { prisma } = await import("@/lib/db");
-    vi.mocked(prisma.rateLimitBucket.findUnique).mockResolvedValue({
-      count: 5,
-      windowStart: new Date("2026-01-01T00:00:00.000Z")
-    } as any);
+    vi.mocked(prisma.$queryRaw).mockResolvedValue([
+      { allowed: false, count: 5, windowStart: new Date("2026-01-01T00:00:00.000Z") }
+    ] as any);
 
     await expect(
       checkAuditRateLimit({ identifier: "203.0.113.10", now: new Date("2026-01-01T00:03:00.000Z") })
@@ -57,6 +54,22 @@ describe("audit rate limit", () => {
       limit: 5,
       remaining: 0
     });
-    expect(prisma.rateLimitBucket.update).not.toHaveBeenCalled();
+    expect(prisma.$queryRaw).toHaveBeenCalledOnce();
+  });
+
+  it("uses a single database statement for the check and increment", async () => {
+    const { prisma } = await import("@/lib/db");
+    vi.mocked(prisma.$queryRaw).mockResolvedValue([
+      { allowed: true, count: 3, windowStart: new Date("2026-01-01T00:00:00.000Z") }
+    ] as any);
+
+    await checkAuditRateLimit({ identifier: "203.0.113.10", now: new Date("2026-01-01T00:03:00.000Z") });
+
+    const queryArg = vi.mocked(prisma.$queryRaw).mock.calls[0]?.[0] as { strings?: string[]; sql?: string };
+    const query = queryArg.strings?.join("") ?? queryArg.sql ?? "";
+    expect(prisma.$queryRaw).toHaveBeenCalledOnce();
+    expect(query).toContain("ON CONFLICT");
+    expect(query).toContain("DO UPDATE");
+    expect(query).toContain("WHERE");
   });
 });
