@@ -92,7 +92,7 @@ http://localhost:3000
 Required for persisted audits:
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+DATABASE_URL=""
 ```
 
 Required for real AI synthesis with direct providers:
