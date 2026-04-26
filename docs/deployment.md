@@ -46,6 +46,14 @@ Runtime behavior:
 - `DEMO_FALLBACK=true`
 - `NEXT_PUBLIC_APP_URL=https://frictionlab-rho.vercel.app`
 
+Abuse controls:
+
+- `AUDIT_RATE_LIMIT_MAX=5`
+- `AUDIT_RATE_LIMIT_WINDOW_SECONDS=600`
+- `RATE_LIMIT_DISABLED=false`
+
+`POST /api/audits` is rate-limited before it creates an audit run or calls AI/browser providers. Client identifiers are hashed before persistence.
+
 Optional integrations:
 
 - `BROWSERLESS_TOKEN`

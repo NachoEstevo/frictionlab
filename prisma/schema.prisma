@@ -42,6 +42,18 @@ model AuditRun {
   shareableReport ShareableReport?
 }
 
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  keyHash     String
+  route       String
+  windowStart DateTime
+  count       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([keyHash, route])
+  @@index([route, windowStart])
+}
+
 model Screenshot {
   id           String   @id @default(cuid())
   auditRunId   String

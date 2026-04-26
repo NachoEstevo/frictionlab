@@ -18,6 +18,9 @@ export type AppEnv = {
   agentMailboxSecure?: boolean;
   agentMailboxUser?: string;
   agentMailboxAppPassword?: string;
+  auditRateLimitMax?: number;
+  auditRateLimitWindowSeconds?: number;
+  rateLimitDisabled?: boolean;
   enableRemotionRender: boolean;
   appUrl: string;
 };
@@ -43,6 +46,9 @@ export function getEnv(): AppEnv {
     agentMailboxSecure: parseBoolean(process.env.AGENT_MAILBOX_SECURE, true),
     agentMailboxUser: process.env.AGENT_MAILBOX_USER,
     agentMailboxAppPassword: process.env.AGENT_MAILBOX_APP_PASSWORD,
+    auditRateLimitMax: parseInteger(process.env.AUDIT_RATE_LIMIT_MAX, 5),
+    auditRateLimitWindowSeconds: parseInteger(process.env.AUDIT_RATE_LIMIT_WINDOW_SECONDS, 600),
+    rateLimitDisabled: parseBoolean(process.env.RATE_LIMIT_DISABLED, false),
     enableRemotionRender: parseBoolean(process.env.ENABLE_REMOTION_RENDER, false),
     appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   };
