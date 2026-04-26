@@ -122,6 +122,14 @@ DEMO_FALLBACK="true"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
+Abuse controls:
+
+```bash
+AUDIT_RATE_LIMIT_MAX="5"
+AUDIT_RATE_LIMIT_WINDOW_SECONDS="600"
+RATE_LIMIT_DISABLED="false"
+```
+
 Optional integrations:
 
 ```bash
