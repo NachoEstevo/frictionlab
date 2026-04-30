@@ -1,4 +1,5 @@
 import type { PageSnapshot } from "@/lib/schemas/page";
+import { getScreenshotFallbackMessage, getScreenshotFallbackStatus } from "@/lib/screenshots/blob-errors";
 import { asArray, asRecord } from "@/lib/ui/json";
 
 type SnapshotViewerProps = {
@@ -27,7 +28,7 @@ type SnapshotViewerProps = {
 export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerProps) {
   if (!snapshot) {
     return (
-      <div className="panel rounded-[8px] p-5">
+      <div className="panel min-w-0 rounded-[8px] p-5">
         <p className="mono text-xs uppercase muted">Page evidence</p>
         <p className="mt-3 text-sm muted">No snapshot has been captured yet.</p>
       </div>
@@ -38,17 +39,20 @@ export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerPro
   const ctas = asArray<string>(snapshot.ctas);
   const metadata = asRecord(snapshot.metadata);
   const primaryScreenshot = screenshots.find((screenshot) => screenshot.url) ?? screenshots[0];
+  const primaryScreenshotStatus = primaryScreenshot
+    ? getScreenshotFallbackStatus(primaryScreenshot.status, primaryScreenshot.error)
+    : null;
 
   return (
-    <div className="panel rounded-[8px] p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+    <div className="panel min-w-0 overflow-hidden rounded-[8px] p-5">
+      <div className="flex min-w-0 items-start justify-between gap-4">
+        <div className="min-w-0">
           <p className="mono text-xs uppercase muted">Page evidence</p>
-          <h2 className="mt-2 text-xl font-semibold">{snapshot.title || "Untitled page"}</h2>
-          <p className="mt-1 text-sm muted">{snapshot.description || "No meta description extracted."}</p>
+          <h2 className="content-safe mt-2 text-xl font-semibold">{snapshot.title || "Untitled page"}</h2>
+          <p className="content-safe mt-1 text-sm muted">{snapshot.description || "No meta description extracted."}</p>
         </div>
         {metadata.fallbackUsed ? (
-          <span className="rounded-full border border-yellow-300/30 px-3 py-1 text-xs text-yellow-200">Fallback used</span>
+          <span className="shrink-0 rounded-full border border-yellow-300/30 px-3 py-1 text-xs text-yellow-200">Fallback used</span>
         ) : null}
       </div>
 
@@ -64,28 +68,36 @@ export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerPro
             />
           ) : (
             <div className="p-4">
-              <p className="mono text-xs uppercase text-yellow-200">{primaryScreenshot.status}</p>
-              <p className="mt-2 text-sm muted">{primaryScreenshot.error || "Screenshot unavailable; DOM evidence is shown below."}</p>
+              <p className="mono text-xs uppercase text-yellow-200">{primaryScreenshotStatus}</p>
+              <p className="content-safe mt-2 text-sm muted">
+                {getScreenshotFallbackMessage(primaryScreenshot.error, "Screenshot unavailable; DOM evidence is shown below.")}
+              </p>
             </div>
           )}
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-5 grid min-w-0 gap-3">
         {sections.slice(0, 5).map((section) => (
-          <div className="panel-soft rounded-[8px] p-3" key={section.id}>
+          <div className="panel-soft min-w-0 overflow-hidden rounded-[8px] p-3" key={section.id}>
             <div className="flex items-center justify-between gap-3">
               <span className="mono text-xs uppercase text-[var(--lime)]">{section.type}</span>
               <span className="mono text-xs muted">#{section.order}</span>
             </div>
-            <p className="mt-2 text-sm font-medium">{section.heading || "Untitled section"}</p>
-            <p className="mt-2 line-clamp-3 text-xs leading-5 muted">{section.text}</p>
+            <p className="content-safe mt-2 text-sm font-medium">{section.heading || "Untitled section"}</p>
+            <p className="content-safe mt-2 line-clamp-3 text-xs leading-5 muted">{section.text}</p>
           </div>
         ))}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {ctas.length > 0 ? ctas.map((cta) => <span className="rounded-full bg-white/8 px-3 py-1 text-xs" key={cta}>{cta}</span>) : null}
+        {ctas.length > 0
+          ? ctas.map((cta) => (
+              <span className="content-safe max-w-full rounded-full bg-white/8 px-3 py-1 text-xs" key={cta}>
+                {cta}
+              </span>
+            ))
+          : null}
       </div>
     </div>
   );
