@@ -56,4 +56,34 @@ describe("browserless provider", () => {
     expect(connection.remoteSessionId).toBeUndefined();
     expect(connection.mode).toBe("ws");
   });
+
+  it("stops a created Browserless session before falling back when session CDP connect fails", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === "DELETE") {
+        return { ok: true };
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          id: "session_123",
+          connect: "wss://production-sfo.browserless.io/session/session_123?token=embedded",
+          stop: "https://production-sfo.browserless.io/session/session_123?token=embedded"
+        })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    connectOverCDP.mockRejectedValueOnce(new Error("session connect failed"));
+    connectOverCDP.mockResolvedValueOnce({ close });
+
+    const { connectBrowserless } = await import("@/lib/webapp/browser/browserless-provider");
+    const connection = await connectBrowserless({ token: "browserless-token", sessionTtlMs: 900_000 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://production-sfo.browserless.io/session/session_123?token=embedded&force=true",
+      { method: "DELETE" }
+    );
+    expect(connectOverCDP).toHaveBeenLastCalledWith("wss://production-sfo.browserless.io?token=browserless-token");
+    expect(connection.mode).toBe("token");
+  });
 });
