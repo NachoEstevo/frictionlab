@@ -72,6 +72,7 @@ describe("webapp audit workflow", () => {
             subject: "Confirm your account",
             fromAddress: "noreply@example.com",
             confirmationLink: "https://app.example.com/confirm?token=abc",
+            confirmationCode: "483921",
             status: "USED"
           }
         ],
@@ -100,7 +101,9 @@ describe("webapp audit workflow", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           browserRunId: "browser_run_1",
-          status: "USED"
+          status: "USED",
+          confirmationLink: "https://app.example.com/[redacted-confirmation-link]",
+          confirmationCode: "[redacted]"
         })
       })
     );

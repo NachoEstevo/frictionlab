@@ -2,14 +2,25 @@ import { describe, expect, it } from "vitest";
 import {
   buildAgentEmailAlias,
   extractEmailActions,
+  generateAgentPassword,
   getBlockedActionReason,
   isAllowedNavigationUrl,
+  redactMailboxEvent,
   redactSecrets
 } from "@/lib/webapp/guards";
 
 describe("webapp audit guardrails", () => {
   it("builds a plus-addressed Gmail alias for a run", () => {
     expect(buildAgentEmailAlias("agent.audit@gmail.com", "audit_123")).toBe("agent.audit+frictionlab-audit-123@gmail.com");
+  });
+
+  it("generates random agent passwords without audit-run identifiers", () => {
+    const first = generateAgentPassword();
+    const second = generateAgentPassword();
+
+    expect(first).not.toBe(second);
+    expect(first).not.toContain("audit_123");
+    expect(first.length).toBeGreaterThanOrEqual(24);
   });
 
   it("extracts confirmation links and codes from email content", () => {
@@ -51,5 +62,21 @@ describe("webapp audit guardrails", () => {
         safe: "visible"
       }
     });
+  });
+
+  it("redacts confirmation links and codes before mailbox persistence", () => {
+    const redacted = redactMailboxEvent({
+      emailAlias: "agent+frictionlab-audit-123@gmail.com",
+      subject: "Confirm",
+      fromAddress: "noreply@example.com",
+      confirmationLink: "https://app.example.com/confirm?token=secret-token",
+      confirmationCode: "483921",
+      status: "USED"
+    });
+
+    expect(redacted.confirmationLink).toBe("https://app.example.com/[redacted-confirmation-link]");
+    expect(redacted.confirmationCode).toBe("[redacted]");
+    expect(JSON.stringify(redacted)).not.toContain("secret-token");
+    expect(JSON.stringify(redacted)).not.toContain("483921");
   });
 });

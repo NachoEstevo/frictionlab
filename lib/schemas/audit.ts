@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isAllowedNavigationUrl } from "@/lib/webapp/domains";
 
 export const BusinessTypeSchema = z.enum([
   "saas",
@@ -40,6 +41,14 @@ export const WebappAuditInputSchema = BaseAuditInputSchema.extend({
   maxSteps: z.number().int().min(1).max(30).default(10),
   mailboxMode: z.literal("GMAIL_IMAP").default("GMAIL_IMAP"),
   testUserProfile: TestUserProfileSchema.optional()
+}).superRefine((input, context) => {
+  if (!isAllowedNavigationUrl(input.url, input.allowedDomains)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["allowedDomains"],
+      message: "allowedDomains must include the initial WEBAPP URL hostname."
+    });
+  }
 });
 
 export const AuditInputSchema = z.union([WebappAuditInputSchema, LandingAuditInputSchema]);

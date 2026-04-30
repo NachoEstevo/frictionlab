@@ -1,9 +1,17 @@
-import { chromium, type Browser, type Page } from "playwright-core";
+import type { Page } from "playwright-core";
 import { getEnv } from "@/lib/env";
 import type { WebappAuditInput } from "@/lib/schemas/audit";
 import { generateNextWebappAction } from "@/lib/webapp/ai/navigation-agent";
+import { connectBrowserless, type BrowserlessConnection } from "@/lib/webapp/browser/browserless-provider";
 import { buildSnapshot, getObservation, observeStep } from "@/lib/webapp/browser/page-evidence";
-import { buildAgentEmailAlias, getBlockedActionReason, isAllowedNavigationUrl, looksBlockedByHumanChallenge } from "@/lib/webapp/guards";
+import {
+  buildAgentEmailAlias,
+  generateAgentPassword,
+  getBlockedActionReason,
+  isAllowedNavigationUrl,
+  looksBlockedByHumanChallenge,
+  redactMailboxEvent
+} from "@/lib/webapp/guards";
 import { pollGmailForConfirmation, type GmailImapConfig } from "@/lib/webapp/mailbox/gmail-imap";
 import type { WebappMailboxEvent, WebappRunResult, WebappStepEvidence } from "@/lib/webapp/types";
 
@@ -12,8 +20,6 @@ type CreateBrowserlessRunnerInput = {
   input: WebappAuditInput;
 };
 
-const browserlessDefaultWsUrl = "wss://production-sfo.browserless.io";
-
 export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrowserlessRunnerInput) {
   return async (): Promise<WebappRunResult> => {
     const env = getEnv();
@@ -21,15 +27,24 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
     const steps: WebappStepEvidence[] = [];
     const mailboxEvents: WebappMailboxEvent[] = [];
     const emailAlias = env.agentMailboxUser ? buildAgentEmailAlias(env.agentMailboxUser, auditRunId) : undefined;
-    const password = `Fr!${auditRunId.replace(/[^a-z0-9]/gi, "").slice(0, 18)}9`;
+    const password = generateAgentPassword();
+
+    if (!isAllowedNavigationUrl(input.url, input.allowedDomains)) {
+      return blockedResult(input, steps, mailboxEvents, "Initial WEBAPP URL is outside allowedDomains.", "BLOCKED");
+    }
 
     if (!env.browserlessToken && !env.browserlessWsUrl) {
       return blockedResult(input, steps, mailboxEvents, "BROWSERLESS_TOKEN or BROWSERLESS_WS_URL is required for webapp audits.");
     }
 
-    let browser: Browser | undefined;
+    let connection: BrowserlessConnection | undefined;
     try {
-      browser = await chromium.connectOverCDP(buildBrowserlessEndpoint(env.browserlessWsUrl, env.browserlessToken));
+      connection = await connectBrowserless({
+        token: env.browserlessToken,
+        wsUrl: env.browserlessWsUrl,
+        sessionTtlMs: env.browserlessSessionTtlMs
+      });
+      const browser = connection.browser;
       const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
       const observe = (
         order: number,
@@ -48,23 +63,23 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
         const blockReason = looksBlockedByHumanChallenge(observation.text);
         if (blockReason) {
           steps.push(await observe(index, "blocked", undefined, "BLOCKED", blockReason));
-          return finishResult("BLOCKED", page, steps, mailboxEvents, blockReason);
+          return finishResult("BLOCKED", page, steps, mailboxEvents, connection, blockReason);
         }
 
         const action = await generateNextWebappAction({ audit: input, emailAlias, observation, steps });
         if (action.actionType === "stop") {
           steps.push(await observe(index, "stop", action.target, "COMPLETED", action.reason));
-          return finishResult("COMPLETED", page, steps, mailboxEvents);
+          return finishResult("COMPLETED", page, steps, mailboxEvents, connection);
         }
         if (action.actionType === "blocked") {
           steps.push(await observe(index, "blocked", action.target, "BLOCKED", action.reason));
-          return finishResult("BLOCKED", page, steps, mailboxEvents, action.reason);
+          return finishResult("BLOCKED", page, steps, mailboxEvents, connection, action.reason);
         }
 
         const blockedActionReason = getBlockedActionReason(action);
         if (blockedActionReason) {
           steps.push(await observe(index, "blocked", action.target, "BLOCKED", blockedActionReason));
-          return finishResult("BLOCKED", page, steps, mailboxEvents, blockedActionReason);
+          return finishResult("BLOCKED", page, steps, mailboxEvents, connection, blockedActionReason);
         }
 
         if (action.actionType === "wait_for_email") {
@@ -72,7 +87,7 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
           mailboxEvents.push(event);
           if (event.status !== "FOUND" && event.status !== "USED") {
             steps.push(await observe(index, "wait_for_email", action.target, "BLOCKED", event.error || event.status));
-            return finishResult("PARTIAL", page, steps, mailboxEvents, event.error);
+            return finishResult("PARTIAL", page, steps, mailboxEvents, connection, event.error);
           }
           steps.push(await observe(index, "wait_for_email", action.target, "COMPLETED", "Confirmation email processed."));
           continue;
@@ -81,7 +96,7 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
         if (action.actionType === "navigate" && action.target && !isAllowedNavigationUrl(action.target, input.allowedDomains)) {
           const reason = "Navigation target is outside allowedDomains.";
           steps.push(await observe(index, "blocked", action.target, "BLOCKED", reason));
-          return finishResult("BLOCKED", page, steps, mailboxEvents, reason);
+          return finishResult("BLOCKED", page, steps, mailboxEvents, connection, reason);
         }
 
         await executeAction(page, action.actionType, action.target, resolveActionValue(action.target, action.value, {
@@ -93,13 +108,13 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
         if (!isAllowedNavigationUrl(page.url(), input.allowedDomains)) {
           const reason = "Browser landed outside allowedDomains after the last action.";
           steps.push(await observe(index, "blocked", page.url(), "BLOCKED", reason));
-          return finishResult("BLOCKED", page, steps, mailboxEvents, reason);
+          return finishResult("BLOCKED", page, steps, mailboxEvents, connection, reason);
         }
 
         steps.push(await observe(index, action.actionType, action.target, "COMPLETED", action.reason));
       }
 
-      return finishResult("PARTIAL", page, steps, mailboxEvents, "Maximum webapp steps reached.");
+      return finishResult("PARTIAL", page, steps, mailboxEvents, connection, "Maximum webapp steps reached.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Browser run failed.";
       return {
@@ -119,7 +134,7 @@ export function createBrowserlessWebappRunner({ auditRunId, input }: CreateBrows
         error: message
       };
     } finally {
-      await browser?.close().catch(() => undefined);
+      await connection?.close();
     }
   };
 }
@@ -182,13 +197,13 @@ async function waitForEmailConfirmation(input: {
 
   if (event.confirmationLink) {
     if (!isAllowedNavigationUrl(event.confirmationLink, input.input.allowedDomains)) {
-      return { ...event, status: "BLOCKED", error: "Confirmation link was outside allowedDomains." };
+      return redactMailboxEvent({ ...event, status: "BLOCKED", error: "Confirmation link was outside allowedDomains." });
     }
     await input.page.goto(event.confirmationLink, { waitUntil: "domcontentloaded", timeout: 45_000 });
-    return { ...event, status: "USED" };
+    return redactMailboxEvent({ ...event, status: "USED" });
   }
 
-  return event;
+  return redactMailboxEvent(event);
 }
 
 function resolveActionValue(
@@ -219,30 +234,25 @@ function findField(page: Page, target: string) {
   return page.getByLabel(target).or(page.getByPlaceholder(target)).or(page.locator(`[name="${cssEscape(target)}"]`)).first();
 }
 
-function buildBrowserlessEndpoint(wsUrl: string | undefined, token: string | undefined): string {
-  if (wsUrl) return token && !wsUrl.includes("token=") ? appendToken(wsUrl, token) : wsUrl;
-  return appendToken(browserlessDefaultWsUrl, token || "");
-}
-
-function appendToken(url: string, token: string) {
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}token=${encodeURIComponent(token)}`;
-}
-
 async function finishResult(
   status: WebappRunResult["status"],
   page: Page,
   steps: WebappStepEvidence[],
   mailboxEvents: WebappMailboxEvent[],
+  connection: BrowserlessConnection | undefined,
   error?: string
 ): Promise<WebappRunResult> {
   return {
     status,
     finalUrl: page.url(),
+    remoteSessionId: connection?.remoteSessionId,
     steps,
     mailboxEvents,
     pageSnapshot: buildSnapshot(page.url(), steps, error),
-    error
+    error,
+    metadata: {
+      browserConnectionMode: connection?.mode
+    }
   };
 }
 
@@ -250,10 +260,11 @@ function blockedResult(
   input: WebappAuditInput,
   steps: WebappStepEvidence[],
   mailboxEvents: WebappMailboxEvent[],
-  error: string
+  error: string,
+  status: WebappRunResult["status"] = "PARTIAL"
 ): WebappRunResult {
   return {
-    status: "PARTIAL",
+    status,
     steps: [
       ...steps,
       {

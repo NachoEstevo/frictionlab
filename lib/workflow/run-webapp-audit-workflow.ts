@@ -3,7 +3,7 @@ import { generateAuditArtifacts } from "@/lib/ai/generate-audit-artifacts";
 import { prisma } from "@/lib/db";
 import type { WebappAuditInput } from "@/lib/schemas/audit";
 import { createBrowserlessWebappRunner } from "@/lib/webapp/browser/browserless-runner";
-import { redactSecrets } from "@/lib/webapp/guards";
+import { redactMailboxEvent, redactSecrets } from "@/lib/webapp/guards";
 import type { WebappBrowserRunner } from "@/lib/webapp/types";
 import { persistArtifacts } from "@/lib/workflow/run-audit-workflow";
 
@@ -61,7 +61,8 @@ export async function runWebappAuditWorkflow(
       });
     }
 
-    for (const event of browserResult.mailboxEvents) {
+    for (const rawEvent of browserResult.mailboxEvents) {
+      const event = redactMailboxEvent(rawEvent);
       await prisma.mailboxEvent.create({
         data: {
           browserRunId,

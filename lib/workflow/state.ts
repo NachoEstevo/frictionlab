@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db";
+import { redactMailboxEvent } from "@/lib/webapp/guards";
 
 export async function getAuditState(auditRunId: string) {
-  return prisma.auditRun.findUnique({
+  const audit = await prisma.auditRun.findUnique({
     where: { id: auditRunId },
     include: {
       pageSnapshot: true,
@@ -49,6 +50,8 @@ export async function getAuditState(auditRunId: string) {
       }
     }
   });
+
+  return redactAuditMailboxEvents(audit);
 }
 
 export async function getAuditEvents(auditRunId: string) {
@@ -74,7 +77,7 @@ export async function getAuditEvents(auditRunId: string) {
     })
   ]);
 
-  return { agentRuns, toolCalls, browserRun };
+  return { agentRuns, toolCalls, browserRun: redactBrowserRunMailboxEvents(browserRun) };
 }
 
 export async function getShareableReportState(shareId: string) {
@@ -115,5 +118,23 @@ export async function getShareableReportState(shareId: string) {
     }
   });
 
-  return share?.isPublic ? share.auditRun : null;
+  return share?.isPublic ? redactAuditMailboxEvents(share.auditRun) : null;
+}
+
+function redactAuditMailboxEvents<T extends { browserRun?: { mailboxEvents?: unknown[] } | null } | null>(audit: T): T {
+  if (!audit?.browserRun) return audit;
+
+  return {
+    ...audit,
+    browserRun: redactBrowserRunMailboxEvents(audit.browserRun)
+  } as T;
+}
+
+function redactBrowserRunMailboxEvents<T extends { mailboxEvents?: unknown[] } | null>(browserRun: T): T {
+  if (!browserRun?.mailboxEvents) return browserRun;
+
+  return {
+    ...browserRun,
+    mailboxEvents: browserRun.mailboxEvents.map((event) => redactMailboxEvent(event as Parameters<typeof redactMailboxEvent>[0]))
+  } as T;
 }

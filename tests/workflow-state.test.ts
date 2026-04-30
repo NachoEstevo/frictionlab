@@ -25,7 +25,14 @@ describe("workflow state", () => {
       id: "browser_run_1",
       status: "RUNNING",
       steps: [{ id: "step_1", order: 1, actionType: "navigate" }],
-      mailboxEvents: [{ id: "mail_1", status: "USED" }]
+      mailboxEvents: [
+        {
+          id: "mail_1",
+          status: "USED",
+          confirmationLink: "https://app.example.com/confirm?token=secret-token",
+          confirmationCode: "483921"
+        }
+      ]
     } as any);
 
     await expect(getAuditEvents("audit_1")).resolves.toMatchObject({
@@ -34,7 +41,14 @@ describe("workflow state", () => {
       browserRun: {
         id: "browser_run_1",
         steps: [{ id: "step_1", order: 1, actionType: "navigate" }],
-        mailboxEvents: [{ id: "mail_1", status: "USED" }]
+        mailboxEvents: [
+          {
+            id: "mail_1",
+            status: "USED",
+            confirmationLink: "https://app.example.com/[redacted-confirmation-link]",
+            confirmationCode: "[redacted]"
+          }
+        ]
       }
     });
   });

@@ -141,7 +141,7 @@ export default function HomePage() {
               AI conversion research for pages that need proof
             </p>
             <h1 className="max-w-4xl text-[clamp(2.9rem,5.4vw,6.2rem)] font-semibold leading-[0.92] tracking-[-0.045em] text-white">
-              Find the friction before your buyers do.
+              Find the <span className="hero-friction-word">friction</span> before your buyers do.
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-8 text-white/[0.68]">
               Paste a public landing page. FrictionLab sends synthetic buyers through the offer, ties every

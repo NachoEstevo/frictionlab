@@ -58,6 +58,21 @@ describe("audit schemas", () => {
     ).toThrow(/allowedDomains/i);
   });
 
+  it("rejects webapp audit input when the initial URL is outside allowedDomains", () => {
+    expect(() =>
+      AuditInputSchema.parse({
+        auditType: "WEBAPP",
+        url: "https://evil.example/signup",
+        targetAudience: "B2B SaaS operators evaluating workflow software",
+        conversionGoal: "Create an account",
+        businessType: "saas",
+        scenarioPrompt: "Create an account and inspect onboarding.",
+        signupAllowed: true,
+        allowedDomains: ["app.example.com"]
+      })
+    ).toThrow(/allowedDomains/i);
+  });
+
   it("requires evidence or missing_information category for findings", () => {
     expect(() =>
       FindingSchema.parse({
