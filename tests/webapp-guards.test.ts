@@ -35,7 +35,10 @@ describe("webapp audit guardrails", () => {
 
   it("blocks navigation outside allowed domains", () => {
     expect(isAllowedNavigationUrl("https://app.example.com/welcome", ["app.example.com"])).toBe(true);
+    expect(isAllowedNavigationUrl("http://app.example.com/welcome", ["app.example.com"])).toBe(true);
     expect(isAllowedNavigationUrl("https://evil.example/phish", ["app.example.com"])).toBe(false);
+    expect(isAllowedNavigationUrl("ftp://app.example.com/export", ["app.example.com"])).toBe(false);
+    expect(isAllowedNavigationUrl("javascript://app.example.com/%0Aalert(1)", ["app.example.com"])).toBe(false);
   });
 
   it("blocks destructive or payment-like actions before execution", () => {

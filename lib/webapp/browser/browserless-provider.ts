@@ -38,13 +38,20 @@ export async function connectBrowserless(input: ConnectBrowserlessInput): Promis
       token: input.token,
       ttl: input.sessionTtlMs ?? 900_000
     });
-    const browser = await chromium.connectOverCDP(session.connect);
-    return buildConnection({
-      browser,
-      mode: "session",
-      remoteSessionId: session.id,
-      stopUrl: session.stop
-    });
+
+    try {
+      const browser = await chromium.connectOverCDP(session.connect);
+      return buildConnection({
+        browser,
+        mode: "session",
+        remoteSessionId: session.id,
+        stopUrl: session.stop
+      });
+    } catch {
+      await stopBrowserlessSession(session.stop);
+      const browser = await chromium.connectOverCDP(appendToken(browserlessDefaultWsUrl, input.token));
+      return buildConnection({ browser, mode: "token" });
+    }
   } catch {
     const browser = await chromium.connectOverCDP(appendToken(browserlessDefaultWsUrl, input.token));
     return buildConnection({ browser, mode: "token" });
@@ -82,11 +89,14 @@ function buildConnection(input: {
     remoteSessionId: input.remoteSessionId,
     close: async () => {
       await input.browser.close().catch(() => undefined);
-      if (input.stopUrl) {
-        await fetch(appendForce(input.stopUrl), { method: "DELETE" }).catch(() => undefined);
-      }
+      await stopBrowserlessSession(input.stopUrl);
     }
   };
+}
+
+async function stopBrowserlessSession(stopUrl: string | undefined): Promise<void> {
+  if (!stopUrl) return;
+  await fetch(appendForce(stopUrl), { method: "DELETE" }).catch(() => undefined);
 }
 
 function appendToken(url: string, token: string | undefined): string {
