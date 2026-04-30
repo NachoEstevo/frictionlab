@@ -1,3 +1,5 @@
+import { getScreenshotFallbackMessage, isPrivateBlobStorePublicAccessError } from "@/lib/screenshots/blob-errors";
+
 type ScreenshotViewport = "desktop" | "mobile";
 
 type ScreenshotRecord = {
@@ -112,6 +114,13 @@ async function captureViewportScreenshot(
       height: viewportConfig.height
     };
   } catch (error) {
+    if (isPrivateBlobStorePublicAccessError(error)) {
+      return fallbackScreenshot(
+        viewportConfig.viewport,
+        getScreenshotFallbackMessage(error, "Screenshot upload failed; audit continued with DOM evidence.")
+      );
+    }
+
     return {
       ...fallbackScreenshot(
         viewportConfig.viewport,

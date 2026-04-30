@@ -36,12 +36,12 @@ export function WebappEvidence({ browserRun }: WebappEvidenceProps) {
   if (!browserRun) return null;
 
   return (
-    <section className="panel rounded-[8px] p-5">
+    <section className="panel min-w-0 rounded-[8px] p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="mono text-xs uppercase muted">Webapp agent run</p>
           <h2 className="mt-2 text-xl font-semibold">{browserRun.provider} browser session</h2>
-          <p className="mt-1 max-w-3xl text-sm muted">
+          <p className="content-safe mt-1 max-w-3xl text-sm muted">
             {browserRun.startUrl}
             {browserRun.finalUrl ? ` -> ${browserRun.finalUrl}` : ""}
           </p>
@@ -55,42 +55,42 @@ export function WebappEvidence({ browserRun }: WebappEvidenceProps) {
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[1fr_360px]">
-        <div className="grid gap-3">
+      <div className="mt-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <div className="grid min-w-0 gap-3">
           {browserRun.steps.map((step) => (
-            <article className="panel-soft rounded-[8px] p-4" key={step.id}>
+            <article className="panel-soft min-w-0 rounded-[8px] p-4" key={step.id}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
                   <span className="mono text-xs text-[var(--lime)]">#{step.order}</span>
                   <span className="mono text-xs uppercase">{step.actionType}</span>
-                  {step.target ? <span className="text-xs muted">{step.target}</span> : null}
+                  {step.target ? <span className="content-safe text-xs muted">{step.target}</span> : null}
                 </div>
                 <span className="mono text-xs muted">{step.status}</span>
               </div>
               {step.title || step.url ? (
-                <p className="mt-2 text-xs muted">
+                <p className="content-safe mt-2 text-xs muted">
                   {step.title}
                   {step.url ? ` · ${step.url}` : ""}
                 </p>
               ) : null}
-              <p className="mt-3 text-sm leading-6">{step.observation}</p>
-              {step.error ? <p className="mt-2 text-xs text-yellow-100">{step.error}</p> : null}
+              <p className="content-safe mt-3 text-sm leading-6">{step.observation}</p>
+              {step.error ? <p className="content-safe mt-2 text-xs text-yellow-100">{step.error}</p> : null}
             </article>
           ))}
         </div>
 
-        <aside className="panel-soft rounded-[8px] p-4">
+        <aside className="panel-soft min-w-0 rounded-[8px] p-4">
           <p className="mono text-xs uppercase muted">Mailbox events</p>
-          <div className="mt-4 grid gap-3">
+          <div className="mt-4 grid min-w-0 gap-3">
             {browserRun.mailboxEvents.length > 0 ? (
               browserRun.mailboxEvents.map((event) => (
-                <div className="rounded-[6px] border border-white/8 bg-black/20 p-3" key={event.id}>
+                <div className="min-w-0 rounded-[6px] border border-white/8 bg-black/20 p-3" key={event.id}>
                   <div className="flex items-center justify-between gap-3">
                     <span className="mono text-xs uppercase text-[var(--lime)]">{event.status}</span>
-                    <span className="mono text-[10px] muted">{event.emailAlias}</span>
+                    <span className="content-safe mono min-w-0 text-[10px] muted">{event.emailAlias}</span>
                   </div>
-                  <p className="mt-2 text-sm">{event.subject || "Email event"}</p>
-                  <p className="mt-1 text-xs muted">{event.fromAddress}</p>
+                  <p className="content-safe mt-2 text-sm">{event.subject || "Email event"}</p>
+                  <p className="content-safe mt-1 text-xs muted">{event.fromAddress}</p>
                   {event.confirmationLink ? <p className="mt-2 break-all text-xs muted">{event.confirmationLink}</p> : null}
                   {event.error ? <p className="mt-2 text-xs text-yellow-100">{event.error}</p> : null}
                 </div>

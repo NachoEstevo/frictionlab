@@ -59,6 +59,30 @@ describe("getPrimaryScreenshotEvidence", () => {
     });
   });
 
+  it("sanitizes private Blob store upload errors from stored screenshot records", () => {
+    const evidence = getPrimaryScreenshotEvidence([
+      {
+        viewport: "desktop",
+        status: "FAILED",
+        url: null,
+        width: null,
+        height: null,
+        fallbackType: "DOM_SNAPSHOT",
+        error: "Vercel Blob: Cannot use public access on a private store. The store is configured with private access."
+      }
+    ]);
+
+    expect(evidence).toEqual({
+      kind: "fallback",
+      viewport: "desktop",
+      status: "FALLBACK",
+      url: null,
+      width: null,
+      height: null,
+      message: "Vercel Blob store is private; screenshot upload was skipped and the audit continued with DOM evidence."
+    });
+  });
+
   it("returns null when no screenshot records exist", () => {
     expect(getPrimaryScreenshotEvidence([])).toBeNull();
   });

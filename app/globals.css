@@ -53,14 +53,21 @@ select {
 }
 
 .panel {
+  min-width: 0;
   border: 1px solid rgba(245, 245, 245, 0.1);
   background: linear-gradient(180deg, rgba(30, 31, 36, 0.86), rgba(10, 10, 10, 0.9));
   box-shadow: 0 18px 80px rgba(0, 0, 0, 0.34);
 }
 
 .panel-soft {
+  min-width: 0;
   border: 1px solid rgba(245, 245, 245, 0.08);
   background: rgba(20, 20, 20, 0.72);
+}
+
+.content-safe {
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .lime-glow {

@@ -19,7 +19,7 @@ export function WorkflowTimeline({ status, toolCalls, agentRuns }: WorkflowTimel
   const names = new Set([...toolCalls.map((tool) => tool.toolName), ...agentRuns.map((agent) => agent.agentName)]);
 
   return (
-    <div className="panel rounded-[8px] p-5">
+    <div className="panel min-w-0 rounded-[8px] p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="mono text-xs uppercase muted">Workflow</p>
@@ -31,7 +31,7 @@ export function WorkflowTimeline({ status, toolCalls, agentRuns }: WorkflowTimel
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-5">
+      <div className="grid min-w-0 gap-3 md:grid-cols-5">
         {steps.map((step, index) => {
           const completed =
             names.has(step.key) ||
@@ -43,7 +43,7 @@ export function WorkflowTimeline({ status, toolCalls, agentRuns }: WorkflowTimel
             agentRuns.some((event) => event.agentName === step.key && event.status === "FAILED");
 
           return (
-            <div className="panel-soft rounded-[8px] p-3" key={step.key}>
+            <div className="panel-soft min-w-0 rounded-[8px] p-3" key={step.key}>
               <div className="mb-3 flex items-center justify-between">
                 <span className="mono text-xs muted">0{index + 1}</span>
                 {failed ? (
@@ -54,7 +54,7 @@ export function WorkflowTimeline({ status, toolCalls, agentRuns }: WorkflowTimel
                   <CircleDashed className="h-4 w-4 muted" />
                 )}
               </div>
-              <p className="text-sm font-medium">{step.label}</p>
+              <p className="content-safe text-sm font-medium">{step.label}</p>
             </div>
           );
         })}

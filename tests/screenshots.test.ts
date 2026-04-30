@@ -119,4 +119,25 @@ describe("captureAuditScreenshots", () => {
     ]);
     expect(screenshots[0]?.error).toMatch(/Blob token rejected/);
   });
+
+  it("falls back cleanly when a private Blob store rejects public screenshots", async () => {
+    const screenshots = await captureAuditScreenshots({
+      auditRunId: "audit_123",
+      url: "https://example.com",
+      browserlessToken: "browserless_test_token",
+      fetcher: async () => new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/png" } }),
+      uploadScreenshot: async () => {
+        throw new Error("Vercel Blob: Cannot use public access on a private store. The store is configured with private access.");
+      }
+    });
+
+    expect(screenshots).toEqual([
+      expect.objectContaining({ viewport: "desktop", status: "FALLBACK", fallbackType: "DOM_SNAPSHOT" }),
+      expect.objectContaining({ viewport: "mobile", status: "FALLBACK", fallbackType: "DOM_SNAPSHOT" })
+    ]);
+    expect(screenshots[0]?.error).toBe(
+      "Vercel Blob store is private; screenshot upload was skipped and the audit continued with DOM evidence."
+    );
+    expect(screenshots[0]?.error).not.toMatch(/Cannot use public access/);
+  });
 });
