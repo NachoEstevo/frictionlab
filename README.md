@@ -135,6 +135,7 @@ Optional integrations:
 ```bash
 BROWSERLESS_TOKEN=""
 BROWSERLESS_WS_URL=""
+BROWSERLESS_SESSION_TTL_MS="900000"
 BLOB_READ_WRITE_TOKEN=""
 ENABLE_REMOTION_RENDER="false"
 ```
@@ -151,7 +152,7 @@ AGENT_MAILBOX_USER=""
 AGENT_MAILBOX_APP_PASSWORD=""
 ```
 
-`AGENT_MAILBOX_USER` should be a dedicated Gmail inbox used only for test accounts. FrictionLab uses plus-addressing for each run and stores only redacted event metadata, not mailbox secrets.
+`BROWSERLESS_TOKEN` uses Browserless Session API by default and stores the returned session id on `BrowserRun`. `BROWSERLESS_WS_URL` remains an explicit connection override. `AGENT_MAILBOX_USER` should be a dedicated Gmail inbox used only for test accounts; Gmail app passwords require 2-Step Verification. FrictionLab uses plus-addressing for each run and stores only redacted confirmation metadata, not mailbox secrets, raw confirmation links, or codes.
 
 ## Runtime Readiness
 

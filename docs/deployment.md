@@ -58,6 +58,7 @@ Optional integrations:
 
 - `BROWSERLESS_TOKEN`
 - `BROWSERLESS_WS_URL`
+- `BROWSERLESS_SESSION_TTL_MS=900000`
 - `BLOB_READ_WRITE_TOKEN`
 - `ENABLE_REMOTION_RENDER=false`
 
@@ -73,7 +74,7 @@ Webapp agent audits:
 - `AGENT_MAILBOX_USER`
 - `AGENT_MAILBOX_APP_PASSWORD`
 
-Webapp audits require `BROWSERLESS_TOKEN` or `BROWSERLESS_WS_URL` to run the browser agent. Gmail confirmation requires `AGENT_MAILBOX_USER` and `AGENT_MAILBOX_APP_PASSWORD`. Without those optional credentials, the run records a partial result with explicit missing-integration evidence.
+Webapp audits require `BROWSERLESS_TOKEN` or `BROWSERLESS_WS_URL` to run the browser agent. With `BROWSERLESS_TOKEN`, FrictionLab creates a Browserless session and stores the remote session id; `BROWSERLESS_WS_URL` remains an explicit connection override. Gmail confirmation requires `AGENT_MAILBOX_USER` and `AGENT_MAILBOX_APP_PASSWORD`; Gmail app passwords require 2-Step Verification. Without those optional credentials, the run records a partial result with explicit missing-integration evidence.
 
 Never commit `.env`, `.env.local`, `.vercel/` or provider secrets.
 

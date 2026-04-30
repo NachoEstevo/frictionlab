@@ -25,6 +25,7 @@ Minimum required for a real browser run:
 BROWSERLESS_TOKEN=""
 # or
 BROWSERLESS_WS_URL=""
+BROWSERLESS_SESSION_TTL_MS="900000"
 ```
 
 Required for autonomous email confirmation:
@@ -33,6 +34,8 @@ Required for autonomous email confirmation:
 AGENT_MAILBOX_USER="agent-inbox@gmail.com"
 AGENT_MAILBOX_APP_PASSWORD=""
 ```
+
+The Gmail account should be dedicated to FrictionLab agents. Gmail app passwords require 2-Step Verification; do not use the normal account password.
 
 Optional Gmail IMAP overrides, shown with their defaults:
 
@@ -48,7 +51,7 @@ Optional screenshot persistence:
 BLOB_READ_WRITE_TOKEN=""
 ```
 
-Without Browserless, the run stops as `PARTIAL` with explicit missing-integration evidence. Without Gmail credentials, the browser can still inspect non-email-gated flows, but email confirmation records a mailbox failure event.
+With `BROWSERLESS_TOKEN`, FrictionLab creates a Browserless session and stores the returned session id. `BROWSERLESS_WS_URL` remains an explicit override for custom Browserless endpoints. Without Browserless, the run stops as `PARTIAL` with explicit missing-integration evidence. Without Gmail credentials, the browser can still inspect non-email-gated flows, but email confirmation records a mailbox failure event.
 
 ## Guardrails
 
@@ -57,7 +60,7 @@ Without Browserless, the run stops as `PARTIAL` with explicit missing-integratio
 - The runner stops when page evidence indicates captcha, 2FA or payment collection, and it blocks payment-like or destructive actions before execution.
 - Passwords, tokens, cookies and authorization-like fields are redacted before persistence.
 - Gmail is accessed through IMAP/API, not by visually logging into Gmail.
-- Confirmation links are used only when their host is within `allowedDomains`.
+- Confirmation links are used only when their host is within `allowedDomains`; persisted mailbox events keep only redacted confirmation metadata.
 
 ## Smoke Test
 

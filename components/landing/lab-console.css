@@ -121,6 +121,11 @@
   min-width: 0;
 }
 
+.hero-friction-word {
+  color: var(--lime);
+  text-shadow: 0 0 32px rgba(204, 255, 61, 0.36);
+}
+
 .insight-row {
   display: grid;
   gap: 10px;
