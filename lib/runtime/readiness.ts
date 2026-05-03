@@ -40,6 +40,7 @@ export function getRuntimeReadiness(
   const hasDatabase = Boolean(env.databaseUrl);
   const hasConfiguredAiModels = hasModelCredential(env.fastModel, env) && hasModelCredential(env.strongModel, env);
   const canRunRealAi = !env.mockMode && hasConfiguredAiModels;
+  const screenshotsEnabled = env.enableScreenshotCapture;
 
   const database = hasDatabase
     ? ready("Postgres is configured for persisted audits.")
@@ -53,11 +54,13 @@ export function getRuntimeReadiness(
     demoFallback: env.demoFallback
       ? ready("DEMO_FALLBACK is enabled for blocked or failing page fetches.")
       : disabled("DEMO_FALLBACK is disabled; fetch failures will fail the run."),
-    browserless: optionalIntegration(
-      optionalEnv.browserlessToken ?? env.browserlessToken,
-      "Browserless screenshot capture is configured.",
-      "Browserless screenshot capture is not configured; audits continue with DOM evidence."
-    ),
+    browserless: screenshotsEnabled
+      ? optionalIntegration(
+          optionalEnv.browserlessToken ?? env.browserlessToken,
+          "Browserless screenshot capture is configured.",
+          "Browserless screenshot capture is not configured; audits continue with DOM evidence."
+        )
+      : disabled("Landing screenshot capture is disabled; audits use DOM evidence."),
     webappBrowser: optionalIntegration(
       env.browserlessWsUrl || env.browserlessToken,
       "Browserless webapp agent browser is configured.",
@@ -67,11 +70,13 @@ export function getRuntimeReadiness(
       env.agentMailboxUser && env.agentMailboxAppPassword
         ? ready("Agent Gmail mailbox is configured for email confirmations.")
         : optional(undefined, "Agent Gmail mailbox is not configured; webapp audits cannot confirm signup emails automatically."),
-    blob: optionalIntegration(
-      optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken,
-      "Vercel Blob screenshot storage is configured.",
-      "Vercel Blob screenshot storage is not configured; audits continue with DOM evidence."
-    ),
+    blob: screenshotsEnabled
+      ? optionalIntegration(
+          optionalEnv.blobReadWriteToken ?? env.blobReadWriteToken,
+          "Vercel Blob screenshot storage is configured.",
+          "Vercel Blob screenshot storage is not configured; audits continue with DOM evidence."
+        )
+      : disabled("Vercel Blob screenshot storage is disabled; audits use DOM evidence."),
     remotion: env.enableRemotionRender
       ? ready("Presenter video rendering is enabled.")
       : disabled("Presenter video rendering is disabled in P0."),

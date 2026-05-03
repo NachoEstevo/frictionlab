@@ -60,9 +60,10 @@ Optional integrations:
 - `BROWSERLESS_WS_URL`
 - `BROWSERLESS_SESSION_TTL_MS=900000`
 - `BLOB_READ_WRITE_TOKEN`
+- `ENABLE_SCREENSHOT_CAPTURE=false`
 - `ENABLE_REMOTION_RENDER=false`
 
-Screenshot capture is active only when both `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are present. With one or both missing, audits continue and persist a fallback screenshot record instead of failing the workflow.
+Landing audit screenshots are disabled by default. Enable them only with `ENABLE_SCREENSHOT_CAPTURE=true` plus `BROWSERLESS_TOKEN` and public-compatible Vercel Blob storage; otherwise audits continue with DOM evidence and do not persist screenshot fallback records.
 
 Webapp agent audits:
 

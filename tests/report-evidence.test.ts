@@ -35,7 +35,7 @@ describe("getPrimaryScreenshotEvidence", () => {
     });
   });
 
-  it("returns a fallback message when only DOM evidence is available", () => {
+  it("returns null when only DOM evidence is available", () => {
     const evidence = getPrimaryScreenshotEvidence([
       {
         viewport: "desktop",
@@ -48,18 +48,10 @@ describe("getPrimaryScreenshotEvidence", () => {
       }
     ]);
 
-    expect(evidence).toEqual({
-      kind: "fallback",
-      viewport: "desktop",
-      status: "FALLBACK",
-      url: null,
-      width: null,
-      height: null,
-      message: "BROWSERLESS_TOKEN is not configured."
-    });
+    expect(evidence).toBeNull();
   });
 
-  it("sanitizes private Blob store upload errors from stored screenshot records", () => {
+  it("returns null for stored private Blob screenshot fallback records", () => {
     const evidence = getPrimaryScreenshotEvidence([
       {
         viewport: "desktop",
@@ -72,15 +64,7 @@ describe("getPrimaryScreenshotEvidence", () => {
       }
     ]);
 
-    expect(evidence).toEqual({
-      kind: "fallback",
-      viewport: "desktop",
-      status: "FALLBACK",
-      url: null,
-      width: null,
-      height: null,
-      message: "Vercel Blob store is private; screenshot upload was skipped and the audit continued with DOM evidence."
-    });
+    expect(evidence).toBeNull();
   });
 
   it("returns null when no screenshot records exist", () => {
