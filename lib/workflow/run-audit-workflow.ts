@@ -7,6 +7,7 @@ import { extractVisibleContent } from "@/lib/extraction/extract-visible-content"
 import { fetchPageHtml } from "@/lib/extraction/fetch-page-html";
 import type { AuditInput } from "@/lib/schemas/audit";
 import type { PageSnapshot } from "@/lib/schemas/page";
+import { shouldCaptureAuditScreenshots } from "@/lib/screenshots/audit-screenshot-policy";
 import { captureAuditScreenshots } from "@/lib/screenshots/capture-audit-screenshots";
 import { uploadScreenshotToBlob } from "@/lib/screenshots/upload-screenshot-to-blob";
 import type { FallbackAuditArtifacts } from "@/lib/workflow/fallbacks";
@@ -68,37 +69,40 @@ export async function runAuditWorkflow(auditRunId: string, input: AuditInput) {
       }
     });
 
-    const screenshotUrl =
-      typeof pageSnapshot.metadata?.finalUrl === "string" ? pageSnapshot.metadata.finalUrl : input.url;
-    const screenshots = await withToolCall(auditRunId, "captureScreenshots", { url: screenshotUrl }, async () =>
-      captureAuditScreenshots({
-        auditRunId,
-        url: screenshotUrl,
-        browserlessToken: env.browserlessToken,
-        uploadScreenshot: env.blobReadWriteToken
-          ? (uploadInput) =>
-              uploadScreenshotToBlob({
-                ...uploadInput,
-                blobReadWriteToken: env.blobReadWriteToken
-              })
-          : undefined
-      })
-    );
-
     await prisma.screenshot.deleteMany({ where: { auditRunId } });
-    await prisma.screenshot.createMany({
-      data: screenshots.map((screenshot) => ({
-        auditRunId,
-        viewport: screenshot.viewport,
-        status: screenshot.status,
-        url: screenshot.url,
-        blobPath: screenshot.blobPath,
-        width: screenshot.width,
-        height: screenshot.height,
-        fallbackType: screenshot.fallbackType,
-        error: screenshot.error
-      }))
-    });
+
+    if (shouldCaptureAuditScreenshots(env)) {
+      const screenshotUrl =
+        typeof pageSnapshot.metadata?.finalUrl === "string" ? pageSnapshot.metadata.finalUrl : input.url;
+      const screenshots = await withToolCall(auditRunId, "captureScreenshots", { url: screenshotUrl }, async () =>
+        captureAuditScreenshots({
+          auditRunId,
+          url: screenshotUrl,
+          browserlessToken: env.browserlessToken,
+          uploadScreenshot: (uploadInput) =>
+            uploadScreenshotToBlob({
+              ...uploadInput,
+              blobReadWriteToken: env.blobReadWriteToken
+            })
+        })
+      );
+
+      if (screenshots.length > 0) {
+        await prisma.screenshot.createMany({
+          data: screenshots.map((screenshot) => ({
+            auditRunId,
+            viewport: screenshot.viewport,
+            status: screenshot.status,
+            url: screenshot.url,
+            blobPath: screenshot.blobPath,
+            width: screenshot.width,
+            height: screenshot.height,
+            fallbackType: screenshot.fallbackType,
+            error: screenshot.error
+          }))
+        });
+      }
+    }
 
     const artifacts = await withAgentRun(auditRunId, "audit_synthesis", { input, pageSnapshot }, async () =>
       generateAuditArtifacts({ auditRunId, input, pageSnapshot })

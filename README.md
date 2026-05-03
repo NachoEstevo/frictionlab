@@ -137,6 +137,7 @@ BROWSERLESS_TOKEN=""
 BROWSERLESS_WS_URL=""
 BROWSERLESS_SESSION_TTL_MS="900000"
 BLOB_READ_WRITE_TOKEN=""
+ENABLE_SCREENSHOT_CAPTURE="false"
 ENABLE_REMOTION_RENDER="false"
 ```
 
@@ -261,9 +262,9 @@ Do not commit provider keys, database URLs, Vercel tokens, or local deployment m
 
 ## Current Scope
 
-P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, optional Browserless screenshot capture with Vercel Blob storage, persisted workflow state, report UI, public share links, Presenter Report data, and controlled webapp signup/onboarding audits.
+P0 is a real vertical slice: DOM evidence extraction, structured AI or explicit fallback, persisted workflow state, report UI, public share links, Presenter Report data, and controlled webapp signup/onboarding audits.
 
-When `BROWSERLESS_TOKEN` and `BLOB_READ_WRITE_TOKEN` are both set, each audit attempts desktop and mobile screenshots. If either credential is missing, FrictionLab records an explicit fallback screenshot event and continues with DOM evidence.
+Landing audit screenshots are disabled by default. Set `ENABLE_SCREENSHOT_CAPTURE=true` only when `BROWSERLESS_TOKEN` and a public-compatible `BLOB_READ_WRITE_TOKEN` are configured; otherwise audits use DOM evidence and do not create screenshot fallback events.
 
 P1 candidates:
 

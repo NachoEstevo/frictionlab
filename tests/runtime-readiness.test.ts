@@ -9,6 +9,7 @@ describe("runtime readiness", () => {
       anthropicApiKey: undefined,
       mockMode: false,
       demoFallback: true,
+      enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai:gpt-4.1-mini",
@@ -27,6 +28,7 @@ describe("runtime readiness", () => {
       anthropicApiKey: undefined,
       mockMode: false,
       demoFallback: true,
+      enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai:gpt-4.1-mini",
@@ -46,6 +48,7 @@ describe("runtime readiness", () => {
       anthropicApiKey: undefined,
       mockMode: true,
       demoFallback: true,
+      enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai:gpt-4.1-mini",
@@ -66,6 +69,7 @@ describe("runtime readiness", () => {
         anthropicApiKey: undefined,
         mockMode: false,
         demoFallback: true,
+        enableScreenshotCapture: false,
         enableRemotionRender: false,
         appUrl: "http://localhost:3000",
         fastModel: "openai:gpt-4.1-mini",
@@ -85,6 +89,7 @@ describe("runtime readiness", () => {
       aiGatewayApiKey: "gateway-test",
       mockMode: false,
       demoFallback: true,
+      enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai/gpt-5.4-mini",
@@ -96,13 +101,38 @@ describe("runtime readiness", () => {
     expect(readiness.checks.aiProvider.status).toBe("ready");
   });
 
-  it("reports screenshot integrations as optional when their tokens are missing", () => {
+  it("reports landing screenshot integrations as disabled by default", () => {
     const readiness = getRuntimeReadiness({
       databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
       openaiApiKey: "sk-test",
       anthropicApiKey: "sk-ant-test",
       mockMode: false,
       demoFallback: true,
+      enableScreenshotCapture: false,
+      enableRemotionRender: false,
+      appUrl: "http://localhost:3000",
+      fastModel: "openai:gpt-4.1-mini",
+      strongModel: "anthropic:claude-sonnet-4-5"
+    });
+
+    expect(readiness.checks.browserless).toEqual({
+      status: "disabled",
+      message: "Landing screenshot capture is disabled; audits use DOM evidence."
+    });
+    expect(readiness.checks.blob).toEqual({
+      status: "disabled",
+      message: "Vercel Blob screenshot storage is disabled; audits use DOM evidence."
+    });
+  });
+
+  it("reports screenshot integrations as optional when capture is explicitly enabled but tokens are missing", () => {
+    const readiness = getRuntimeReadiness({
+      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      openaiApiKey: "sk-test",
+      anthropicApiKey: "sk-ant-test",
+      mockMode: false,
+      demoFallback: true,
+      enableScreenshotCapture: true,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai:gpt-4.1-mini",

@@ -1,5 +1,4 @@
 import type { PageSnapshot } from "@/lib/schemas/page";
-import { getScreenshotFallbackMessage, getScreenshotFallbackStatus } from "@/lib/screenshots/blob-errors";
 import { asArray, asRecord } from "@/lib/ui/json";
 
 type SnapshotViewerProps = {
@@ -38,10 +37,9 @@ export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerPro
   const sections = asArray<PageSnapshot["sections"][number]>(snapshot.sections);
   const ctas = asArray<string>(snapshot.ctas);
   const metadata = asRecord(snapshot.metadata);
-  const primaryScreenshot = screenshots.find((screenshot) => screenshot.url) ?? screenshots[0];
-  const primaryScreenshotStatus = primaryScreenshot
-    ? getScreenshotFallbackStatus(primaryScreenshot.status, primaryScreenshot.error)
-    : null;
+  const primaryScreenshot = screenshots.find(
+    (screenshot): screenshot is (typeof screenshots)[number] & { url: string } => Boolean(screenshot.url)
+  );
 
   return (
     <div className="panel min-w-0 overflow-hidden rounded-[8px] p-5">
@@ -58,22 +56,13 @@ export function SnapshotViewer({ snapshot, screenshots = [] }: SnapshotViewerPro
 
       {primaryScreenshot ? (
         <div className="mt-5 overflow-hidden rounded-[8px] border border-white/10 bg-black/30">
-          {primaryScreenshot.url ? (
-            <img
-              alt={`${primaryScreenshot.viewport} screenshot`}
-              className="max-h-[360px] w-full object-cover object-top"
-              height={primaryScreenshot.height ?? undefined}
-              src={primaryScreenshot.url}
-              width={primaryScreenshot.width ?? undefined}
-            />
-          ) : (
-            <div className="p-4">
-              <p className="mono text-xs uppercase text-yellow-200">{primaryScreenshotStatus}</p>
-              <p className="content-safe mt-2 text-sm muted">
-                {getScreenshotFallbackMessage(primaryScreenshot.error, "Screenshot unavailable; DOM evidence is shown below.")}
-              </p>
-            </div>
-          )}
+          <img
+            alt={`${primaryScreenshot.viewport} screenshot`}
+            className="max-h-[360px] w-full object-cover object-top"
+            height={primaryScreenshot.height ?? undefined}
+            src={primaryScreenshot.url}
+            width={primaryScreenshot.width ?? undefined}
+          />
         </div>
       ) : null}
 

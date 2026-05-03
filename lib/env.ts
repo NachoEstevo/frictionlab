@@ -12,6 +12,7 @@ export type AppEnv = {
   browserlessWsUrl?: string;
   browserlessSessionTtlMs?: number;
   blobReadWriteToken?: string;
+  enableScreenshotCapture: boolean;
   webappBrowserProvider?: "browserless";
   webappMaxSteps?: number;
   agentMailboxHost?: string;
@@ -41,6 +42,7 @@ export function getEnv(): AppEnv {
     browserlessWsUrl: process.env.BROWSERLESS_WS_URL,
     browserlessSessionTtlMs: parseInteger(process.env.BROWSERLESS_SESSION_TTL_MS, 900_000),
     blobReadWriteToken: process.env.BLOB_READ_WRITE_TOKEN,
+    enableScreenshotCapture: parseBoolean(process.env.ENABLE_SCREENSHOT_CAPTURE, false),
     webappBrowserProvider: "browserless",
     webappMaxSteps: parseInteger(process.env.WEBAPP_MAX_STEPS, 20),
     agentMailboxHost: process.env.AGENT_MAILBOX_HOST || "imap.gmail.com",

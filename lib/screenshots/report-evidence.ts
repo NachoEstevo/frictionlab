@@ -1,5 +1,3 @@
-import { getScreenshotFallbackMessage, getScreenshotFallbackStatus } from "@/lib/screenshots/blob-errors";
-
 export type ScreenshotEvidenceRecord = {
   viewport: string;
   status: string;
@@ -11,7 +9,7 @@ export type ScreenshotEvidenceRecord = {
 };
 
 export type PrimaryScreenshotEvidence = {
-  kind: "image" | "fallback";
+  kind: "image";
   viewport: string;
   status: string;
   url: string | null;
@@ -21,28 +19,18 @@ export type PrimaryScreenshotEvidence = {
 };
 
 export function getPrimaryScreenshotEvidence(screenshots: ScreenshotEvidenceRecord[]): PrimaryScreenshotEvidence | null {
-  const screenshot = screenshots.find((item) => item.url) ?? screenshots[0];
+  const screenshot = screenshots.find(
+    (item): item is ScreenshotEvidenceRecord & { url: string } => Boolean(item.url)
+  );
   if (!screenshot) return null;
 
-  if (screenshot.url) {
-    return {
-      kind: "image",
-      viewport: screenshot.viewport,
-      status: screenshot.status,
-      url: screenshot.url,
-      width: screenshot.width,
-      height: screenshot.height,
-      message: `${screenshot.viewport} screenshot captured.`
-    };
-  }
-
   return {
-    kind: "fallback",
+    kind: "image",
     viewport: screenshot.viewport,
-    status: getScreenshotFallbackStatus(screenshot.status, screenshot.error),
-    url: null,
+    status: screenshot.status,
+    url: screenshot.url,
     width: screenshot.width,
     height: screenshot.height,
-    message: getScreenshotFallbackMessage(screenshot.error, "Screenshot unavailable; report is based on DOM evidence.")
+    message: `${screenshot.viewport} screenshot captured.`
   };
 }
