@@ -13,6 +13,7 @@ The goal is simple: replace subjective landing-page feedback with a repeatable r
 - Extracts title, meta description, headings, CTAs, links, visible text, and page sections.
 - For webapp audits, persists browser steps, DOM observations, optional screenshots, and Gmail confirmation events.
 - Generates synthetic personas and session timelines with structured AI output.
+- Uses a fast model for persona/session/navigation steps and a strong model for final synthesis, recommendations, reports and presenter scenes.
 - Produces prioritized friction findings tied to evidence references or explicit `missing_information`.
 - Creates recommendations, copy variants, a shareable report, and a Presenter Report storyboard.
 - Persists the entire audit workflow in Postgres with inspectable tool and agent events.
@@ -36,13 +37,19 @@ flowchart LR
 
 Every output should be traceable back to page evidence, persona behavior, or a clearly marked information gap.
 
+## Review Philosophy
+
+FrictionLab is calibrated to be useful, not performative. The audit should be evidence-backed, direct and constructive: it should call out real conversion risk without turning the report into a roast, and it should not soften clear blockers into vague encouragement.
+
+Findings distinguish observed friction from inferred risk, include severity, preserve positive signals when they matter, and end in concrete next actions a product or growth team can ship.
+
 ## Tech Stack
 
 - Next.js App Router
 - TypeScript
 - Prisma + Postgres
 - Vercel AI SDK
-- OpenAI and Anthropic provider support
+- Vercel AI Gateway, OpenAI and Anthropic provider support
 - Tailwind CSS
 - GSAP for landing-page motion
 - Vitest
@@ -95,24 +102,28 @@ Required for persisted audits:
 DATABASE_URL=""
 ```
 
-Required for real AI synthesis with direct providers:
+Recommended for your current Anthropic-only setup:
 
 ```bash
-OPENAI_API_KEY=""
 ANTHROPIC_API_KEY=""
-FRICTIONLAB_FAST_MODEL="openai:gpt-4.1-mini"
+FRICTIONLAB_FAST_MODEL="anthropic:claude-sonnet-4-5"
 FRICTIONLAB_STRONG_MODEL="anthropic:claude-sonnet-4-5"
 ```
 
-Optional Vercel AI Gateway routing:
+Model usage:
+
+- `FRICTIONLAB_FAST_MODEL`: persona generation, session simulation and webapp navigation-agent decisions.
+- `FRICTIONLAB_STRONG_MODEL`: aggregation, recommendations, copy variants, shareable reports and Presenter Report scenes.
+
+Optional GPT-5.5 routing through Vercel AI Gateway:
 
 ```bash
 AI_GATEWAY_API_KEY=""
 FRICTIONLAB_FAST_MODEL="openai/gpt-5.4-mini"
-FRICTIONLAB_STRONG_MODEL="anthropic/claude-sonnet-4.6"
+FRICTIONLAB_STRONG_MODEL="openai/gpt-5.5"
 ```
 
-Gateway model ids use `provider/model`. The explicit `gateway:provider/model` prefix is also supported. On Vercel, OIDC-based Gateway auth can satisfy the same readiness check without committing a token.
+Vercel documents GPT-5.5 with the `openai/gpt-5.5` Gateway model id in its [AI Gateway changelog](https://vercel.com/changelog/gpt-5.5-on-ai-gateway). Direct provider model ids use `provider:model`; Gateway model ids use `provider/model`; the explicit `gateway:provider/model` prefix is also supported. On Vercel, OIDC-based Gateway auth can satisfy the same readiness check without committing a token.
 
 Runtime behavior:
 
@@ -259,6 +270,14 @@ This repository intentionally ignores:
 - generated local archives and machine metadata
 
 Do not commit provider keys, database URLs, Vercel tokens, or local deployment metadata.
+
+Before switching the repository to public, verify that only examples are tracked and run a redacted secret scanner such as Gitleaks or GitHub secret scanning:
+
+```bash
+git ls-files | grep -E '(^|/)\.env($|\.|example)' || true
+```
+
+The package keeps `"private": true` in `package.json` to prevent accidental npm publishing; that does not prevent the GitHub repository from being public.
 
 ## Current Scope
 

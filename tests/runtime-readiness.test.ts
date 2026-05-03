@@ -5,14 +5,14 @@ describe("runtime readiness", () => {
   it("blocks startup when DATABASE_URL is missing", () => {
     const readiness = getRuntimeReadiness({
       databaseUrl: undefined,
-      openaiApiKey: "sk-test",
+      openaiApiKey: "test-openai-key",
       anthropicApiKey: undefined,
       mockMode: false,
       demoFallback: true,
       enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
-      fastModel: "openai:gpt-4.1-mini",
+      fastModel: "anthropic:claude-sonnet-4-5",
       strongModel: "anthropic:claude-sonnet-4-5"
     });
 
@@ -23,7 +23,7 @@ describe("runtime readiness", () => {
 
   it("reports degraded live readiness when AI keys are missing but fallback can run", () => {
     const readiness = getRuntimeReadiness({
-      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      databaseUrl: "postgresql://localhost/frictionlab",
       openaiApiKey: undefined,
       anthropicApiKey: undefined,
       mockMode: false,
@@ -31,7 +31,7 @@ describe("runtime readiness", () => {
       enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
-      fastModel: "openai:gpt-4.1-mini",
+      fastModel: "anthropic:claude-sonnet-4-5",
       strongModel: "anthropic:claude-sonnet-4-5"
     });
 
@@ -43,7 +43,7 @@ describe("runtime readiness", () => {
 
   it("allows demo/mock mode without AI provider keys", () => {
     const readiness = getRuntimeReadiness({
-      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      databaseUrl: "postgresql://localhost/frictionlab",
       openaiApiKey: undefined,
       anthropicApiKey: undefined,
       mockMode: true,
@@ -51,7 +51,7 @@ describe("runtime readiness", () => {
       enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
-      fastModel: "openai:gpt-4.1-mini",
+      fastModel: "anthropic:claude-sonnet-4-5",
       strongModel: "anthropic:claude-sonnet-4-5"
     });
 
@@ -64,15 +64,15 @@ describe("runtime readiness", () => {
   it("can report when NEXT_PUBLIC_APP_URL is only using the local fallback", () => {
     const readiness = getRuntimeReadiness(
       {
-        databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
-        openaiApiKey: "sk-test",
-        anthropicApiKey: undefined,
+        databaseUrl: "postgresql://localhost/frictionlab",
+        openaiApiKey: undefined,
+        anthropicApiKey: "test-anthropic-key",
         mockMode: false,
         demoFallback: true,
         enableScreenshotCapture: false,
         enableRemotionRender: false,
         appUrl: "http://localhost:3000",
-        fastModel: "openai:gpt-4.1-mini",
+        fastModel: "anthropic:claude-sonnet-4-5",
         strongModel: "anthropic:claude-sonnet-4-5"
       },
       { appUrlConfigured: false }
@@ -83,7 +83,7 @@ describe("runtime readiness", () => {
 
   it("reports ready when configured models use AI Gateway credentials", () => {
     const readiness = getRuntimeReadiness({
-      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
+      databaseUrl: "postgresql://localhost/frictionlab",
       openaiApiKey: undefined,
       anthropicApiKey: undefined,
       aiGatewayApiKey: "gateway-test",
@@ -93,7 +93,7 @@ describe("runtime readiness", () => {
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
       fastModel: "openai/gpt-5.4-mini",
-      strongModel: "gateway:anthropic/claude-sonnet-4.6"
+      strongModel: "openai/gpt-5.5"
     });
 
     expect(readiness.status).toBe("ready");
@@ -103,15 +103,15 @@ describe("runtime readiness", () => {
 
   it("reports landing screenshot integrations as disabled by default", () => {
     const readiness = getRuntimeReadiness({
-      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
-      openaiApiKey: "sk-test",
-      anthropicApiKey: "sk-ant-test",
+      databaseUrl: "postgresql://localhost/frictionlab",
+      openaiApiKey: "test-openai-key",
+      anthropicApiKey: "test-anthropic-key",
       mockMode: false,
       demoFallback: true,
       enableScreenshotCapture: false,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
-      fastModel: "openai:gpt-4.1-mini",
+      fastModel: "anthropic:claude-sonnet-4-5",
       strongModel: "anthropic:claude-sonnet-4-5"
     });
 
@@ -127,15 +127,15 @@ describe("runtime readiness", () => {
 
   it("reports screenshot integrations as optional when capture is explicitly enabled but tokens are missing", () => {
     const readiness = getRuntimeReadiness({
-      databaseUrl: "postgresql://user:pass@localhost:5432/frictionlab",
-      openaiApiKey: "sk-test",
-      anthropicApiKey: "sk-ant-test",
+      databaseUrl: "postgresql://localhost/frictionlab",
+      openaiApiKey: "test-openai-key",
+      anthropicApiKey: "test-anthropic-key",
       mockMode: false,
       demoFallback: true,
       enableScreenshotCapture: true,
       enableRemotionRender: false,
       appUrl: "http://localhost:3000",
-      fastModel: "openai:gpt-4.1-mini",
+      fastModel: "anthropic:claude-sonnet-4-5",
       strongModel: "anthropic:claude-sonnet-4-5"
     });
 

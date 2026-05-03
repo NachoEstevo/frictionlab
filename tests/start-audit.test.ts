@@ -45,7 +45,7 @@ describe("startAudit", () => {
   };
 
   beforeEach(() => {
-    process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/frictionlab";
+    process.env.DATABASE_URL = "postgresql://localhost/frictionlab";
     scheduledTasks.length = 0;
     vi.clearAllMocks();
   });

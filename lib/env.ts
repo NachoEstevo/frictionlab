@@ -34,7 +34,7 @@ export function getEnv(): AppEnv {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     aiGatewayApiKey: process.env.AI_GATEWAY_API_KEY,
     vercelOidcToken: process.env.VERCEL_OIDC_TOKEN,
-    fastModel: process.env.FRICTIONLAB_FAST_MODEL || "openai:gpt-4.1-mini",
+    fastModel: process.env.FRICTIONLAB_FAST_MODEL || "anthropic:claude-sonnet-4-5",
     strongModel: process.env.FRICTIONLAB_STRONG_MODEL || "anthropic:claude-sonnet-4-5",
     mockMode: parseBoolean(process.env.MOCK_MODE, false),
     demoFallback: parseBoolean(process.env.DEMO_FALLBACK, true),
