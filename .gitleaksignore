@@ -1,0 +1,3 @@
+# False positives from early public-readiness docs that contained empty env placeholders.
+3025f1087c1377873e13b21f19c86c4b5a2d748e:README.md:generic-api-key:97
+8e8a4a798c188ec0e2072a5765f650cf6ec7711d:.env.example:generic-api-key:5
